@@ -1,0 +1,60 @@
+netcdf example_huc_eta {
+dimensions:
+	maxStrlen64 = 64 ;
+	station = 2 ;
+	time = 25 ;
+variables:
+	double lat(station) ;
+		lat:units = "degrees_north" ;
+		lat:missing_value = -999. ;
+		lat:long_name = "latitude of the observation" ;
+		lat:standard_name = "latitude" ;
+	double lon(station) ;
+		lon:units = "degrees_east" ;
+		lon:missing_value = -999. ;
+		lon:long_name = "longitude of the observation" ;
+		lon:standard_name = "longitude" ;
+	double time(time) ;
+		time:units = "days since 1970-01-01 00:00:00" ;
+		time:missing_value = -999. ;
+		time:long_name = "time of measurement" ;
+		time:standard_name = "time" ;
+	char station_name(station, maxStrlen64) ;
+		station_name:units = "" ;
+		station_name:missing_value = "" ;
+		station_name:long_name = "Station Names" ;
+		station_name:cf_role = "timeseries_id" ;
+		station_name:standard_name = "station_id" ;
+	int et(station, time) ;
+		et:units = "mm" ;
+		et:missing_value = -999 ;
+		et:long_name = "Area Weighted Mean Actual Evapotranspiration" ;
+		et:coordinates = "time lat lon" ;
+
+// global attributes:
+		:Conventions = "CF-1.7" ;
+		:featureType = "timeSeries" ;
+		:cdm_data_type = "Station" ;
+		:standard_name_vocabulary = "CF-1.7" ;
+		:DODS.strlen = 12 ;
+		:DODS.dimName = "name_strlen" ;
+data:
+
+ lat = 36.488959, 36.43594 ;
+
+ lon = -80.399735, -80.365249 ;
+
+ time = 10957, 10988, 11017, 11048, 11078, 11109, 11139, 11170, 11201, 11231, 
+    11262, 11292, 11323, 11354, 11382, 11413, 11443, 11474, 11504, 11535, 
+    11566, 11596, 11627, 11657, 11688 ;
+
+ station_name =
+  "030101030106",
+  "030101030107" ;
+
+ et =
+  10, 19, 21, 36, 105, 110, 128, 121, 70, 25, 18, 9, 14, 17, 20, 54, 93, 127, 
+    144, 125, 78, 29, 12, 9, 16,
+  10, 20, 23, 37, 107, 114, 134, 118, 70, 27, 20, 8, 17, 20, 22, 61, 97, 133, 
+    146, 123, 78, 30, 14, 11, 16 ;
+}
