@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/bekozi/netCDF-CF-simple-geometry.svg?branch=master)](https://travis-ci.org/bekozi/netCDF-CF-simple-geometry)
+
 # netCDF-CF-simple-geometry
 CF Convention for Representing Simple Geometry Types
 

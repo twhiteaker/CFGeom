@@ -1,0 +1,22 @@
+language: python
+
+sudo: false
+
+env:
+  - CONDA_PYTHON="python=3"
+
+before_install:
+  - wget http://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh -O miniconda.sh;
+  - bash miniconda.sh -b -p $HOME/miniconda
+  - export PATH="$HOME/miniconda/bin:$PATH"
+  - hash -r
+  - conda config --set always_yes yes --set changeps1 no
+  - conda update --all --yes
+  - conda info -a
+
+install:
+  - travis_retry conda create -n test-full $CONDA_PYTHON shapely pytest
+  - source activate test-full
+
+script:
+  - bash test.sh
