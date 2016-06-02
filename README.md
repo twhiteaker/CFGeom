@@ -12,13 +12,13 @@
 ## Use Cases (not exhaustive)
 
 * Encode watershed model time series and polygons in single file. Archiving the model output and geometry is the purpose.
-* A single streamflow value for all rivers in the conterminous U.S. at a given point in time.
+* Encode a streamflow value for each river segment in the conterminous U.S. at a given point in time.
 
 ## Proposal
 
-* Extending the CF timeseries feature type.
-* polygon or polyline used for spatial 'coordinates' of a timeseries variable.
-* mimic well known text style for encoding multi polygons with holes and multilines.
+* Extend the CF timeseries feature type.
+* Polygon or polyline used for spatial 'coordinates' of a timeseries variable.
+* Mimic well known text style for encoding multipolygons with holes and multilines.
 
 ## Important Elements and Structure
 
@@ -37,7 +37,7 @@ Dimensionality;
 1) strlen is long enough for the character array timeseries id.
 2) node would be as long as all the nodes of all the timeseries + enough special characters to separate 'holes'. 
 3) timeseries would be as long as the number of timeseries in the file.
-4) index_start_stop would be 2 or 3 depending if the just the first node of a given time series or both the first and last node of a given timeseries is to be stored.
+4) index_start_stop would be 2 or 3 depending if just the first node of a given time series or both the first and last node of a given timeseries is to be stored.
 5) time is the length of the maximum length time series in the file. 
 
 ```
@@ -45,16 +45,16 @@ netcdf example {
 dimensions:
         strlen ;
         node ;
-				timeseries ;
-				index_start_stop ;
-        time;
+		timeseries ;
+		index_start_stop ;
+        time ;
 variables:
         double polyLat(node) ;
                 polyLat:standard_name = "polygon node" ;
         double polyLon(node) ;
                 polyLon:standard_name = "polygon node" ;
-				int polyIndex(timeseries, index_start_stop) ;
-								polyIndex:cf_role = "node_index" ;
+		int polyIndex(timeseries, index_start_stop) ;
+				polyIndex:cf_role = "node_index" ;
         char timeseriesID(timeseries, strlen) ;
                 timeseriesID:cf_role = "timeseries_id" ;
         int data(timeseries, time) ;
