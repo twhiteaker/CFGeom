@@ -41,7 +41,7 @@ def loads(cindex, x, y, z=None, geom_type='point', start_index=0, multipart_brea
     geom_type = geom_type.lower()
     # Determine the shapely geometry type.
     shapely_type = NCSG_GEOM_OBJECT_MAP[geom_type]['single']
-    # Convert the coordinate index array to a NumPy integer array. This is the only actualy NumPy array that is
+    # Convert the coordinate index array to a NumPy integer array. This is the only actual NumPy array that is
     # required.
     cindex = np.array(cindex, dtype=int)
 
@@ -129,15 +129,12 @@ def _get_splits_(to_split, break_value):
         splits = [to_split]
     else:
         splits = []
+        start_of_split = 0
         for ctr, w in enumerate(widx):
-            if ctr == 0:
-                # The first split originates from zero.
-                splits.append(to_split[0: w])
-            else:
-                # These are interior splits.
-                splits.append(to_split[w - 1: w])
+            splits.append(to_split[start_of_split: w])
+            start_of_split = w + 1
         # Do not forget the coordinates following the last split!
-        splits.append(to_split[widx[-1] + 1:])
+        splits.append(to_split[start_of_split:])
     return splits
 
 
