@@ -1,5 +1,7 @@
+[![Build Status](https://travis-ci.org/bekozi/netCDF-CF-simple-geometry.svg?branch=master)](https://travis-ci.org/bekozi/netCDF-CF-simple-geometry)
+
 # netCDF-CF-simple-geometry
-CF Convention for Representing Simple Geometry Types
+**DRAFT** CF Convention for Representing Simple Geometry Types
 
 ## Scope
 
@@ -10,13 +12,13 @@ CF Convention for Representing Simple Geometry Types
 ## Use Cases (not exhaustive)
 
 * Encode watershed model time series and polygons in single file. Archiving the model output and geometry is the purpose.
-* A single streamflow value for all rivers in the conterminous U.S. at a given point in time.
+* Encode a streamflow value for each river segment in the conterminous U.S. at a given point in time.
 
 ## Proposal
 
-* Extending the CF timeseries feature type.
-* polygon or polyline used for spatial 'coordinates' of a timeseries variable.
-* mimic well known text style for encoding multi polygons with holes and multilines.
+* Extend the CF timeseries feature type.
+* Polygon or polyline used for spatial 'coordinates' of a timeseries variable.
+* Mimic well known text style for encoding multipolygons with holes and multilines.
 
 ## Data Elements and Structure
 
@@ -35,7 +37,7 @@ A piece of software reading this would be expected to:
 
 Dimensionality;
 1) strlen is long enough for the character array timeseries id.
-2) node would be as long as all the nodes of all the timeseries + enough special characters to separate 'holes'. 
+2) node would be as long as all the nodes of all the timeseries + enough special characters to separate 'holes'.
 3) polygons would be as long as the number of timeseries/polygons in the file.
 4) time is the length of the maximum length time series in the file. 
 
