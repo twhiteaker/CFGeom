@@ -26,20 +26,20 @@ For discussion, the structure and attributes below should be what's needed to st
 
 ### Format overview with timeSeries featureType as context.
  
-A piece of software reading this would be expected to:
-1) See CF-1.8 conventions
-2) See the timeSeries featureType
-3) Find the timeseries\_id cf\_role
-4) Find the coordinates 
-5) See that the coordinates have a standard\_name "polygon node" to determine that these are polygons according to this new specification.
-6) Find the variable with sample_dimension "node" to determine the count of 'samples' (nodes) along the node dimension. (See CF 1.7 Section 9.3.3, could also use format in 9.3.2 - Incomplete multidimensional array representation.)
-7) Iterate over polygons, picking out geometries for each `timeSeries` using the count to pick out the required nodes.
+A piece of software reading this would be expected to:  
+1) See CF-1.8 conventions  
+2) See the timeSeries featureType  
+3) Find the timeseries\_id cf\_role  
+4) Find the coordinates  
+5) See that the coordinates have a standard\_name "polygon node" to determine that these are polygons according to this new specification.  
+6) Find the variable with sample_dimension "node" to determine the count of 'samples' (nodes) along the node dimension. (See CF 1.7 Section 9.3.3, could also use format in 9.3.2 - Incomplete multidimensional array representation.)  
+7) Iterate over polygons, picking out geometries for each `timeSeries` using the count to pick out the required nodes.  
 
-Dimensionality;
-1) strlen is long enough for the character array timeseries id.
-2) node would be as long as all the nodes of all the timeseries + enough special characters to separate 'holes'.
-3) polygons would be as long as the number of timeseries features in the file.
-4) time is the length of the maximum length time series in the file. 
+Dimensionality:  
+1) strlen is long enough for the character array timeseries id.  
+2) node would be as long as all the nodes of all the timeseries + enough special characters to separate 'holes'.  
+3) polygons would be as long as the number of timeseries features in the file.  
+4) time is the length of the maximum length time series in the file.  
 
 ```
 netcdf example {
@@ -52,10 +52,10 @@ variables:
     int crs() ;
     double polyLat(node) ;
 				polyLat:standard_name = "polygon y node" ;
-				polyLat:grid\_mapping = "crs"
+				polyLat:grid_mapping = "crs"
     double polyLon(node) ;
 				polyLon:standard_name = "polygon x node" ;
-				polyLon:grid\_mapping = "crs"
+				polyLon:grid_mapping = "crs"
     int polyIndex(polygons) ;
 				polyIndex:sample_dimension = "node" ;
     char polygonsID(polygons, strlen) ;
@@ -81,10 +81,10 @@ variables:
     int crs() ;
     double polyLat(node) ;
 				polyLat:standard_name = "polygon y node" ;
-				polyLat:grid\_mapping = "crs"
+				polyLat:grid_mapping = "crs"
     double polyLon(node) ;
 				polyLon:standard_name = "polygon x node" ;
-				polyLon:grid\_mapping = "crs"
+				polyLon:grid_mapping = "crs"
     int polyIndex(polygons) ;
 				polyIndex:sample_dimension = "node" ;
 
