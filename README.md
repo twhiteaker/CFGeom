@@ -38,7 +38,7 @@ A piece of software reading this would be expected to:
 Dimensionality;
 1) strlen is long enough for the character array timeseries id.
 2) node would be as long as all the nodes of all the timeseries + enough special characters to separate 'holes'.
-3) polygons would be as long as the number of timeseries/polygons in the file.
+3) polygons would be as long as the number of timeseries features in the file.
 4) time is the length of the maximum length time series in the file. 
 
 ```
@@ -46,29 +46,29 @@ netcdf example {
 dimensions:
     strlen ;
     node ;
-		polygons ;
+    polygons ;
     time ;
 variables:
 		int crs() ;
-    double polyLat(node) ;
-            polyLat:standard_name = "polygon y node" ;
-						polyLat:grid\_mapping = "crs"
+		double polyLat(node) ;
+				polyLat:standard_name = "polygon y node" ;
+				polyLat:grid\_mapping = "crs"
     double polyLon(node) ;
-            polyLon:standard_name = "polygon x node" ;
-						polyLon:grid\_mapping = "crs"
-		int polyIndex(node) ;
+				polyLon:standard_name = "polygon x node" ;
+				polyLon:grid\_mapping = "crs"
+		int polyIndex(polygons) ;
 				polyIndex:sample_dimension = "node" ;
     char polygonsID(polygons, strlen) ;
-            polygonsID:cf_role = "timeseries_id" ;
+				polygonsID:cf_role = "timeseries_id" ;
     int data(polygons, time) ;
-            data:coordinates = "time polyLat polyLon" ;
+				data:coordinates = "time polyLat polyLon" ;
 
 // global attributes:
-                :Conventions = "CF-1.8" ;
-                :featureType = "timeSeries" ;
+				:Conventions = "CF-1.8" ;
+				:featureType = "timeSeries" ;
 ```
 
-### Representation of WKT - style polygons using NetCDF3.
+### Representation of WKT-style polygons using NetCDF3.
 
 In `Format Overview with timeSeries featureType`, above, the `polyLat`, `polyLon`, and polyIndex variables make up a collection of polygons stored in contiguous ragged array format. The important details this new convention would require are the standard\_name "polygon x node" and "polygon y node" otherwise, the data structures all adopt from the existing CF contiguous or incomplete ragged array formats. A file holding only polygon information without the timeSeries featureType would look like:
 
@@ -76,20 +76,20 @@ In `Format Overview with timeSeries featureType`, above, the `polyLat`, `polyLon
 netcdf example {
 dimensions:
     node ;
-		polygons ;
+    polygons ;
 variables:
 		int crs() ;
     double polyLat(node) ;
-            polyLat:standard_name = "polygon y node" ;
-						polyLat:grid\_mapping = "crs"
+				polyLat:standard_name = "polygon y node" ;
+				polyLat:grid\_mapping = "crs"
     double polyLon(node) ;
-            polyLon:standard_name = "polygon x node" ;
-						polyLon:grid\_mapping = "crs"
-		int polyIndex(node) ;
+				polyLon:standard_name = "polygon x node" ;
+				polyLon:grid\_mapping = "crs"
+		int polyIndex(polygons) ;
 				polyIndex:sample_dimension = "node" ;
 
 // global attributes:
-                :Conventions = "CF-1.8" ;
+				:Conventions = "CF-1.8" ;
 ```
 
 ### Encoding of WKT multiPolygons and multiLine.
