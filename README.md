@@ -49,14 +49,14 @@ dimensions:
     polygons ;
     time ;
 variables:
-		int crs() ;
-		double polyLat(node) ;
+    int crs() ;
+    double polyLat(node) ;
 				polyLat:standard_name = "polygon y node" ;
 				polyLat:grid\_mapping = "crs"
     double polyLon(node) ;
 				polyLon:standard_name = "polygon x node" ;
 				polyLon:grid\_mapping = "crs"
-		int polyIndex(polygons) ;
+    int polyIndex(polygons) ;
 				polyIndex:sample_dimension = "node" ;
     char polygonsID(polygons, strlen) ;
 				polygonsID:cf_role = "timeseries_id" ;
@@ -78,14 +78,14 @@ dimensions:
     node ;
     polygons ;
 variables:
-		int crs() ;
+    int crs() ;
     double polyLat(node) ;
 				polyLat:standard_name = "polygon y node" ;
 				polyLat:grid\_mapping = "crs"
     double polyLon(node) ;
 				polyLon:standard_name = "polygon x node" ;
 				polyLon:grid\_mapping = "crs"
-		int polyIndex(polygons) ;
+    int polyIndex(polygons) ;
 				polyIndex:sample_dimension = "node" ;
 
 // global attributes:
