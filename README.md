@@ -22,7 +22,31 @@
 
 ## Data Elements and Structure
 
-For discussion, the structure and attributes below should be what's needed to store a polygon as the `timeseries_id` of a `timeSeries` featuretype. This is using a rectangular array for the time series data and a contiguous ragged array (indexed ragged array would be silly) for the polygon nodes. In CF 2 we would expect the ragged array notation to change to a variable length data field that uses more natural 2d indexing.
+For discussion, the structure and attributes below should be what's needed to store a polygon as the spatial coordinates of a `timeSeries` CF `featuretype`. This is using a rectangular array for the time series data and a contiguous ragged array (indexed ragged array would be silly) for the polygon nodes. In CF 2 we would expect the ragged array notation to change to a variable length data field that uses more natural 2d indexing.
+
+### Representation of WKT-style polygons using NetCDF3.
+
+The important detail this new convention would require are the standard\_name "polygon x node" and "polygon y node" otherwise, the data structures all adopt from the existing CF contiguous or incomplete ragged array formats. A file holding only polygon information without a timeSeries featureType would look like:
+
+```
+netcdf example {
+dimensions:
+    polyNodes ;
+    polygons ;
+variables:
+    int crs() ;
+    double polyLat(polyNodes) ;
+				polyLat:standard_name = "polygon y node" ;
+				polyLat:grid_mapping = "crs"
+    double polyLon(polyNodes) ;
+				polyLon:standard_name = "polygon x node" ;
+				polyLon:grid_mapping = "crs"
+    int polyNodeCount(polygons) ;
+				polyNodeCount:sample_dimension = "polyNodes" ;
+
+// global attributes:
+				:Conventions = "CF-1.8" ;
+```
 
 ### Format overview with timeSeries featureType as context.
  
@@ -69,29 +93,6 @@ variables:
 				:featureType = "timeSeries" ;
 ```
 
-### Representation of WKT-style polygons using NetCDF3.
-
-In `Format Overview with timeSeries featureType`, above, the `polyLat`, `polyLon`, and polyNodeCount variables make up a collection of polygons stored in contiguous ragged array format. The important details this new convention would require are the standard\_name "polygon x node" and "polygon y node" otherwise, the data structures all adopt from the existing CF contiguous or incomplete ragged array formats. A file holding only polygon information without the timeSeries featureType would look like:
-
-```
-netcdf example {
-dimensions:
-    polyNodes ;
-    polygons ;
-variables:
-    int crs() ;
-    double polyLat(polyNodes) ;
-				polyLat:standard_name = "polygon y node" ;
-				polyLat:grid_mapping = "crs"
-    double polyLon(polyNodes) ;
-				polyLon:standard_name = "polygon x node" ;
-				polyLon:grid_mapping = "crs"
-    int polyNodeCount(polygons) ;
-				polyNodeCount:sample_dimension = "polyNodes" ;
-
-// global attributes:
-				:Conventions = "CF-1.8" ;
-```
 
 ### Encoding of WKT multiPolygons and multiLine.
 
