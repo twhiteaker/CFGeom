@@ -36,16 +36,16 @@ dimensions:
 variables:
     int crs() ;
     double polyLat(polyNodes) ;
-				polyLat:standard_name = "polygon y node" ;
-				polyLat:grid_mapping = "crs"
+        polyLat:standard_name = "polygon y node" ;
+        polyLat:grid_mapping = "crs"
     double polyLon(polyNodes) ;
-				polyLon:standard_name = "polygon x node" ;
-				polyLon:grid_mapping = "crs"
+        polyLon:standard_name = "polygon x node" ;
+        polyLon:grid_mapping = "crs"
     int polyNodeCount(polygons) ;
-				polyNodeCount:sample_dimension = "polyNodes" ;
+        polyNodeCount:sample_dimension = "polyNodes" ;
 
 // global attributes:
-				:Conventions = "CF-1.8" ;
+        :Conventions = "CF-1.8" ;
 ```
 
 ### Format overview with timeSeries featureType as context.
@@ -75,22 +75,22 @@ dimensions:
 variables:
     int crs() ;
     double polyLat(polyNodes) ;
-				polyLat:standard_name = "polygon y node" ;
-				polyLat:grid_mapping = "crs"
+        polyLat:standard_name = "polygon y node" ;
+        polyLat:grid_mapping = "crs"
     double polyLon(polyNodes) ;
-				polyLon:standard_name = "polygon x node" ;
-				polyLon:grid_mapping = "crs"
+        polyLon:standard_name = "polygon x node" ;
+        polyLon:grid_mapping = "crs"
     int polyNodeCount(polygons) ;
-				polyNodeCount:sample_dimension = "polyNodes" ; // Note this is backward compatible with CF1.6 but sample_dimension is problematic.
-				polyNodeCount:contiguous_ragged_dimension = "polyNodes" ; // This is a proposal for a more approriate name for sample_dimension.
+        polyNodeCount:sample_dimension = "polyNodes" ; // Note this is backward compatible with CF1.6 but sample_dimension is problematic.
+        polyNodeCount:contiguous_ragged_dimension = "polyNodes" ; // This is a proposal for a more approriate name for sample_dimension.
     char polygonsID(polygons, strlen) ;
-				polygonsID:cf_role = "timeseries_id" ;
+        polygonsID:cf_role = "timeseries_id" ;
     int data(polygons, time) ;
-				data:coordinates = "time polyLat polyLon" ;
+        data:coordinates = "time polyLat polyLon" ;
 
 // global attributes:
-				:Conventions = "CF-1.8" ;
-				:featureType = "timeSeries" ;
+        :Conventions = "CF-1.8" ;
+        :featureType = "timeSeries" ;
 ```
 
 
