@@ -43,6 +43,8 @@ variables:
         polyLon:grid_mapping = "crs"
     int polyNodeCount(polygons) ;
         polyNodeCount:sample_dimension = "polyNodes" ;
+    double someVariable(polygons) ;
+        someVariable:long_name = "a variable describing a single-valued attribute of a polygon"
 
 // global attributes:
         :Conventions = "CF-1.8" ;
