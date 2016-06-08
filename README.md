@@ -32,12 +32,12 @@ A piece of software reading this would be expected to:
 3) Find the timeseries\_id cf\_role  
 4) Find the coordinates  
 5) See that the coordinates have a standard\_name "polygon node" to determine that these are polygons according to this new specification.  
-6) Find the variable with sample_dimension "node" to determine the count of 'samples' (nodes) along the node dimension. (See CF 1.7 Section 9.3.3, could also use format in 9.3.2 - Incomplete multidimensional array representation.)  
+6) Find the variable with sample_dimension "polyNodes" to determine the count of 'samples' (nodes) along the node dimension. (See CF 1.7 Section 9.3.3, could also use format in 9.3.2 - Incomplete multidimensional array representation.)  
 7) Iterate over polygons, picking out geometries for each `timeSeries` using the count to pick out the required nodes.  
 
 Dimensionality:  
 1) strlen is long enough for the character array timeseries id.  
-2) node would be as long as all the nodes of all the timeseries + enough special characters to separate 'holes'.  
+2) polyNodes would be as long as all the nodes of all the timeseries + enough special characters to separate 'holes'.  
 3) polygons would be as long as the number of timeseries features in the file.  
 4) time is the length of the maximum length time series in the file.  
 
@@ -45,19 +45,20 @@ Dimensionality:
 netcdf example {
 dimensions:
     strlen ;
-    node ;
+    polyNodes ;
     polygons ;
     time ;
 variables:
     int crs() ;
-    double polyLat(node) ;
+    double polyLat(polyNodes) ;
 				polyLat:standard_name = "polygon y node" ;
 				polyLat:grid_mapping = "crs"
-    double polyLon(node) ;
+    double polyLon(polyNodes) ;
 				polyLon:standard_name = "polygon x node" ;
 				polyLon:grid_mapping = "crs"
-    int polyIndex(polygons) ;
-				polyIndex:sample_dimension = "node" ;
+    int polyNodeCount(polygons) ;
+				polyNodeCount:sample_dimension = "polyNodes" ; // Note this is backward compatible with CF1.6 but sample_dimension is problematic.
+				polyNodeCount:contiguous_ragged_dimension = "polyNodes" ; // This is a proposal for a more approriate name for sample_dimension.
     char polygonsID(polygons, strlen) ;
 				polygonsID:cf_role = "timeseries_id" ;
     int data(polygons, time) ;
@@ -70,23 +71,23 @@ variables:
 
 ### Representation of WKT-style polygons using NetCDF3.
 
-In `Format Overview with timeSeries featureType`, above, the `polyLat`, `polyLon`, and polyIndex variables make up a collection of polygons stored in contiguous ragged array format. The important details this new convention would require are the standard\_name "polygon x node" and "polygon y node" otherwise, the data structures all adopt from the existing CF contiguous or incomplete ragged array formats. A file holding only polygon information without the timeSeries featureType would look like:
+In `Format Overview with timeSeries featureType`, above, the `polyLat`, `polyLon`, and polyNodeCount variables make up a collection of polygons stored in contiguous ragged array format. The important details this new convention would require are the standard\_name "polygon x node" and "polygon y node" otherwise, the data structures all adopt from the existing CF contiguous or incomplete ragged array formats. A file holding only polygon information without the timeSeries featureType would look like:
 
 ```
 netcdf example {
 dimensions:
-    node ;
+    polyNodes ;
     polygons ;
 variables:
     int crs() ;
-    double polyLat(node) ;
+    double polyLat(polyNodes) ;
 				polyLat:standard_name = "polygon y node" ;
 				polyLat:grid_mapping = "crs"
-    double polyLon(node) ;
+    double polyLon(polyNodes) ;
 				polyLon:standard_name = "polygon x node" ;
 				polyLon:grid_mapping = "crs"
-    int polyIndex(polygons) ;
-				polyIndex:sample_dimension = "node" ;
+    int polyNodeCount(polygons) ;
+				polyNodeCount:sample_dimension = "polyNodes" ;
 
 // global attributes:
 				:Conventions = "CF-1.8" ;
