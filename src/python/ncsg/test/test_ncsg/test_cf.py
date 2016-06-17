@@ -5,6 +5,17 @@ from ncsg.constants import NCSG_MULTIPART_BREAK_VALUE, NCSG_HOLE_BREAK_VALUE
 from ncsg.test.base import AbstractNCSGTest
 
 
+class TestStartIndex(AbstractNCSGTest):
+    def test_start_index_point_2d_multipart(self):
+        cindex = [1, NCSG_MULTIPART_BREAK_VALUE, 2, NCSG_MULTIPART_BREAK_VALUE, 3, NCSG_MULTIPART_BREAK_VALUE, 4]
+        x = [10, 40, 20, 30]
+        y = [40, 30, 20, 10]
+
+        mpt = cf.loads(cindex, x, y, start_index=1)
+        desired = wkt.loads(self.fixture_wkt['2d']['multipoint'])
+        self.assertEqual(mpt, desired)
+
+    
 class TestPoint(AbstractNCSGTest):
     def test_loads_point_2d(self):
         cindex = [1]
