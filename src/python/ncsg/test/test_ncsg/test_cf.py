@@ -5,6 +5,17 @@ from ncsg.constants import NCSG_MULTIPART_BREAK_VALUE, NCSG_HOLE_BREAK_VALUE
 from ncsg.test.base import AbstractNCSGTest
 
 
+class TestStartIndex(AbstractNCSGTest):
+    def test_start_index_point_2d_multipart(self):
+        cindex = [1, NCSG_MULTIPART_BREAK_VALUE, 2, NCSG_MULTIPART_BREAK_VALUE, 3, NCSG_MULTIPART_BREAK_VALUE, 4]
+        x = [10, 40, 20, 30]
+        y = [40, 30, 20, 10]
+
+        mpt = cf.loads(cindex, x, y, start_index=1)
+        desired = wkt.loads(self.fixture_wkt['2d']['multipoint'])
+        self.assertEqual(mpt, desired)
+
+    
 class TestPoint(AbstractNCSGTest):
     def test_loads_point_2d(self):
         cindex = [1]
@@ -111,4 +122,13 @@ class TestPolygon(AbstractNCSGTest):
 
         p = cf.loads(cindex, x, y, geom_type='polygon')
         desired = wkt.loads(self.fixture_wkt['2d']['multipolygon_hole'])
+        self.assertEqual(p, desired)
+
+    def test_loads_polygon_2d_multipart_holes(self):
+        cindex = [0, 1, 2, 3, 4, NCSG_HOLE_BREAK_VALUE, 5, 6, 7, 8, NCSG_HOLE_BREAK_VALUE, 9, 10, 11, 12, NCSG_HOLE_BREAK_VALUE, 13, 14, 15, 16, NCSG_MULTIPART_BREAK_VALUE, 17, 18, 19, 20, NCSG_MULTIPART_BREAK_VALUE, 21, 22, 23, 24]
+        x = [0, 20, 20, 0, 0, 1, 10, 19, 1, 5, 7, 9, 5, 11, 13, 15, 11, 5, 9, 7, 5, 11, 15, 13, 11]
+        y = [0, 0, 20, 20, 0, 1, 5, 1, 1, 15, 19, 15, 15, 15, 19, 15, 15, 25, 25, 29, 25, 25, 25, 29, 25]
+
+        p = cf.loads(cindex, x, y, geom_type='polygon')
+        desired = wkt.loads(self.fixture_wkt['2d']['multipolygons_holes'])
         self.assertEqual(p, desired)

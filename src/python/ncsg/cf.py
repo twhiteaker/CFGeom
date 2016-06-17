@@ -52,7 +52,7 @@ def loads(cindex, x, y, z=None, geom_type='point', start_index=0, multipart_brea
     # Adjust indices to zero-based.
     if start_index == 1:
         cindex = deepcopy(cindex)
-        cindex -= 1
+        cindex[cindex>0] -= 1  # Don't adjust the break values.
 
     # Split geometries if a multipart break value is provided. Otherwise, we'll operate on the single split.
     if multipart_break is None:
