@@ -1,11 +1,92 @@
+import os
+import subprocess
+import tempfile
 from abc import ABCMeta
 
+import netCDF4 as nc
+import numpy as np
+
 from ncsg.base import AbstractNCSGObject
+from ncsg.constants import NetcdfDimension, DataType, NetcdfVariable
 
 
-class AbstractCFGeometry(AbstractNCSGObject):
+class CFGeometryCollection(AbstractNCSGObject):
+    """
+    A collection of CF geometries.
+    """
+    # TODO: Docstring and commenting
     __metaclass__ = ABCMeta
 
+    def __init__(self, geom_type, cindex, x, y, z=None, start_index=0, multipart_break=None, hole_break=None):
+        if geom_type.startswith('multi'):
+            assert multipart_break is not None
 
-class AbstractCFMultipartGeometry(AbstractCFGeometry):
-    __metaclass__ = ABCMeta
+        cindex_new = np.zeros(len(cindex), dtype=object)
+        for idx, ii in enumerate(cindex):
+            cindex_new[idx] = np.array(ii, dtype=DataType.INT)
+
+        self.cindex = cindex_new
+        self.x = x
+        self.y = y
+        self.z = z
+        self.geom_type = geom_type
+
+        self.start_index = start_index
+        self.multipart_break = multipart_break
+        self.hole_break = hole_break
+
+        assert len(self.x) == len(self.y)
+        if self.z is not None:
+            assert len(self.z) == len(self.x)
+
+    def describe(self, header=True):
+        path = os.path.join(tempfile.gettempdir(), '_ncsg_describe_.nc')
+        self.write_netcdf(path)
+        try:
+            cmd = ['ncdump']
+            if header:
+                cmd.append('-h')
+            cmd.append(path)
+            subprocess.check_call(cmd)
+        finally:
+            os.remove(path)
+
+    def write_netcdf(self, path_or_object):
+        should_close = False
+        if isinstance(path_or_object, nc.Dataset):
+            ds = path_or_object
+        else:
+            ds = nc.Dataset(path_or_object, mode='w')
+            should_close = True
+
+        try:
+            ds.createDimension(NetcdfDimension.GEOMETRY_COUNT, size=len(self.cindex))
+            ds.createDimension(NetcdfDimension.NODE_COUNT, size=len(self.x))
+            vltype = ds.createVLType(DataType.INT, DataType.GEOMETRY_VLTYPE)
+
+            cindex = ds.createVariable(NetcdfVariable.COORDINATE_INDEX, vltype,
+                                       dimensions=(NetcdfDimension.GEOMETRY_COUNT,))
+            cindex[:] = self.cindex
+            cindex.geom_type = self.geom_type
+            coordinates = [NetcdfVariable.X, NetcdfVariable.Y]
+            if self.z is not None:
+                coordinates.append(NetcdfVariable.Z)
+            cindex.coordinates = ' '.join(coordinates)
+            if self.multipart_break is not None:
+                cindex.multipart_break_value = self.multipart_break
+            if self.hole_break is not None:
+                cindex.hole_break_value = self.hole_break
+
+            x = ds.createVariable(NetcdfVariable.X, DataType.FLOAT, dimensions=(NetcdfDimension.NODE_COUNT,))
+            x[:] = self.x
+
+            y = ds.createVariable(NetcdfVariable.Y, DataType.FLOAT, dimensions=(NetcdfDimension.NODE_COUNT,))
+            y[:] = self.y
+
+            if self.z is not None:
+                z = ds.createVariable(NetcdfVariable.Z, DataType.FLOAT, dimensions=(NetcdfDimension.NODE_COUNT,))
+                z[:] = self.z
+
+        finally:
+            if should_close:
+                ds.close()

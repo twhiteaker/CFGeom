@@ -1,12 +1,30 @@
+
 from shapely.geometry import Point, MultiPoint, Polygon, MultiPolygon, LineString, MultiLineString
 
-#: Break value for multipart geometries.
-NCSG_MULTIPART_BREAK_VALUE = -1
-
-#: Break value to indicate holes in polygons.
-NCSG_HOLE_BREAK_VALUE = -2
-
-#: Maps geometry types to their associate Shapely types.
+#: Maps single and multipart types.
 NCSG_GEOM_OBJECT_MAP = {'point': {'single': Point, 'multi': MultiPoint},
                         'linestring': {'single': LineString, 'multi': MultiLineString},
                         'polygon': {'single': Polygon, 'multi': MultiPolygon}}
+
+
+class BreakValue(object):
+    MULTIPART = -1
+    HOLE = -2
+
+
+class DataType(object):
+    INT = int
+    GEOMETRY_VLTYPE = 'geom_VLType'
+    FLOAT = float
+
+
+class NetcdfDimension(object):
+    GEOMETRY_COUNT = 'geom'
+    NODE_COUNT = 'node'
+
+
+class NetcdfVariable(object):
+    COORDINATE_INDEX = 'coordinateIndex'
+    X = 'x'
+    Y = 'y'
+    Z = 'z'
