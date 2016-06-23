@@ -7,9 +7,31 @@ from shapely.geometry.multipolygon import MultiPolygon
 from shapely.geometry.polygon import orient
 
 from ncsg import cf
+from ncsg.cf import ContinuousRaggedArray
 from ncsg.constants import BreakValue, OuterRingOrder, ClosureConvention
 from ncsg.geometry.base import CFGeometryCollection
 from ncsg.test.base import AbstractNCSGTest
+
+
+class TestContinuousRaggedArray(AbstractNCSGTest):
+    def test_as_vlen(self):
+        for start_index in [0, 1]:
+            value = [[1, 2, 3], [4], [5, 6, 7, 8]]
+            cra_base = ContinuousRaggedArray.from_vlen(value, start_index=start_index)
+            cra = ContinuousRaggedArray(cra_base.value, cra_base.stops, start_index=start_index)
+            self.assertEqual(cra.as_vlen(), value)
+
+    def test_from_vlen(self):
+        value = [[1, 2, 3], [4], [5, 6, 7, 8]]
+        cra = ContinuousRaggedArray.from_vlen(value)
+        desired = []
+        for ii in value:
+            desired += ii
+        self.assertEqual(cra.value, desired)
+        self.assertEqual(cra.stops, [2, 3, 7])
+
+        cra = ContinuousRaggedArray.from_vlen(value, start_index=1)
+        self.assertEqual(cra.stops, [3, 4, 8])
 
 
 class TestStartIndex(AbstractNCSGTest):
@@ -26,10 +48,11 @@ class TestStartIndex(AbstractNCSGTest):
 class TestPoint(AbstractNCSGTest):
     def test_dumps_point_3d(self):
         geoms = [Point(1, 2, 10), Point(3, 4, 11), Point(5, 6, 12)]
-        coll = cf.dumps('point', geoms)
+        coll = cf.dumps('point', geoms, multipart_break=None)
+        self.assertIsNone(coll.multipart_break)
         self.assertEqual(len(coll.cindex), 3)
         self.assertIsNotNone(coll.z)
-        # coll.describe(header=False)
+        # coll.describe(cra=True, header=False)
 
     def test_loads_point_2d(self):
         cindex = [1]
@@ -147,19 +170,20 @@ class TestPolygon(AbstractNCSGTest):
         p2 = 'POLYGON ((4 6, 7 0, 10 6, 4 6))'
         mp = MultiPolygon([wkt.loads(p1), wkt.loads(p2)])
 
-        # Test with a single multipolygon.
-        res = cf.dumps('polygon', mp)
-        path = os.path.join(tempfile.gettempdir(), '_ncsg_test_output_.nc')
-        res.write_netcdf(path)
-        # self.ncdump(path, header=False)
-        os.remove(path)
+        for cra in [False, True]:
+            # Test with a single multipolygon.
+            res = cf.dumps('polygon', mp)
+            path = os.path.join(tempfile.gettempdir(), '_ncsg_test_output_.nc')
+            res.write_netcdf(path, cra=cra)
+            # self.ncdump(path, header=False)
+            os.remove(path)
 
-        # Test with multiple polygons.
-        res = cf.dumps('polygon', [mp, wkt.loads(p1), wkt.loads(p2)])
-        path = os.path.join(tempfile.gettempdir(), '_ncsg_test_output_.nc')
-        res.write_netcdf(path)
-        # self.ncdump(path, header=False)
-        os.remove(path)
+            # Test with multiple polygons.
+            res = cf.dumps('polygon', [mp, wkt.loads(p1), wkt.loads(p2)])
+            path = os.path.join(tempfile.gettempdir(), '_ncsg_test_output_.nc')
+            res.write_netcdf(path, cra=cra)
+            # self.ncdump(path, header=False)
+            os.remove(path)
 
     def test_loads_polygon_2d(self):
         cindex = [0, 1, 2, 3, 0]

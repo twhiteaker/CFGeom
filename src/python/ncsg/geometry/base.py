@@ -42,9 +42,9 @@ class CFGeometryCollection(AbstractNCSGObject):
         if self.z is not None:
             assert len(self.z) == len(self.x)
 
-    def describe(self, header=True):
+    def describe(self, cra=False, header=True):
         path = os.path.join(tempfile.gettempdir(), '_ncsg_describe_.nc')
-        self.write_netcdf(path)
+        self.write_netcdf(path, cra=cra)
         try:
             cmd = ['ncdump']
             if header:
@@ -54,7 +54,7 @@ class CFGeometryCollection(AbstractNCSGObject):
         finally:
             os.remove(path)
 
-    def write_netcdf(self, path_or_object):
+    def write_netcdf(self, path_or_object, cra=False):
         should_close = False
         if isinstance(path_or_object, nc.Dataset):
             ds = path_or_object
@@ -63,13 +63,32 @@ class CFGeometryCollection(AbstractNCSGObject):
             should_close = True
 
         try:
-            ds.createDimension(NetcdfDimension.GEOMETRY_COUNT, size=len(self.cindex))
             ds.createDimension(NetcdfDimension.NODE_COUNT, size=len(self.x))
-            vltype = ds.createVLType(DataType.INT, DataType.GEOMETRY_VLTYPE)
 
-            cindex = ds.createVariable(NetcdfVariable.COORDINATE_INDEX, vltype,
-                                       dimensions=(NetcdfDimension.GEOMETRY_COUNT,))
-            cindex[:] = self.cindex
+            if cra:
+                from ncsg.cf import ContinuousRaggedArray
+
+                cra_obj = ContinuousRaggedArray.from_vlen(self.cindex, start_index=self.start_index)
+                ds.createDimension(NetcdfDimension.GEOMETRY_COUNT, size=len(cra_obj.stops))
+                ds.createDimension(NetcdfDimension.CRA_NODE_INDEX, size=len(cra_obj.value))
+                cindex = ds.createVariable(NetcdfVariable.COORDINATE_INDEX, DataType.INT,
+                                           dimensions=(NetcdfDimension.CRA_NODE_INDEX,))
+                stops = ds.createVariable(NetcdfVariable.CRA_STOP, DataType.INT,
+                                          dimensions=(NetcdfDimension.GEOMETRY_COUNT,))
+            else:
+                ds.createDimension(NetcdfDimension.GEOMETRY_COUNT, size=len(self.cindex))
+                vltype = ds.createVLType(DataType.INT, DataType.GEOMETRY_VLTYPE)
+                cindex = ds.createVariable(NetcdfVariable.COORDINATE_INDEX, vltype,
+                                           dimensions=(NetcdfDimension.GEOMETRY_COUNT,))
+
+            if cra:
+                cindex_value = cra_obj.value
+                stops[:] = cra_obj.stops
+                stops.continuous_ragged_dimension = NetcdfDimension.CRA_NODE_INDEX
+            else:
+                cindex_value = self.cindex
+            cindex[:] = cindex_value
+
             cindex.geom_type = self.geom_type
             coordinates = [NetcdfVariable.X, NetcdfVariable.Y]
             if self.z is not None:

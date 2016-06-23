@@ -21,13 +21,15 @@ class DataType(object):
 class NetcdfDimension(object):
     GEOMETRY_COUNT = 'geom'
     NODE_COUNT = 'node'
+    CRA_NODE_INDEX = 'node_index'
 
 
 class NetcdfVariable(object):
-    COORDINATE_INDEX = 'coordinateIndex'
+    COORDINATE_INDEX = 'coordinate_index'
     X = 'x'
     Y = 'y'
     Z = 'z'
+    CRA_STOP = 'geom_stop'
 
 
 class OuterRingOrder(object):
