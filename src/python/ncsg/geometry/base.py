@@ -7,7 +7,7 @@ import netCDF4 as nc
 import numpy as np
 
 from ncsg.base import AbstractNCSGObject
-from ncsg.constants import NetcdfDimension, DataType, NetcdfVariable
+from ncsg.constants import NetcdfDimension, DataType, NetcdfVariable, OuterRingOrder, ClosureConvention
 
 
 class CFGeometryCollection(AbstractNCSGObject):
@@ -17,7 +17,8 @@ class CFGeometryCollection(AbstractNCSGObject):
     # TODO: Docstring and commenting
     __metaclass__ = ABCMeta
 
-    def __init__(self, geom_type, cindex, x, y, z=None, start_index=0, multipart_break=None, hole_break=None):
+    def __init__(self, geom_type, cindex, x, y, z=None, start_index=0, multipart_break=None, hole_break=None,
+                 outer_ring_order=None, closure_convention=ClosureConvention.INDEPENDENT):
         if geom_type.startswith('multi'):
             assert multipart_break is not None
 
@@ -34,6 +35,8 @@ class CFGeometryCollection(AbstractNCSGObject):
         self.start_index = start_index
         self.multipart_break = multipart_break
         self.hole_break = hole_break
+        self.outer_ring_order = outer_ring_order
+        self.closure_convention = closure_convention
 
         assert len(self.x) == len(self.y)
         if self.z is not None:
@@ -74,8 +77,12 @@ class CFGeometryCollection(AbstractNCSGObject):
             cindex.coordinates = ' '.join(coordinates)
             if self.multipart_break is not None:
                 cindex.multipart_break_value = self.multipart_break
-            if self.hole_break is not None:
-                cindex.hole_break_value = self.hole_break
+            if 'polygon' in self.geom_type:
+                if self.hole_break is not None:
+                    cindex.hole_break_value = self.hole_break
+                if self.outer_ring_order is not None:
+                    setattr(cindex, OuterRingOrder.NAME, self.outer_ring_order)
+                setattr(cindex, ClosureConvention.NAME, self.closure_convention)
 
             x = ds.createVariable(NetcdfVariable.X, DataType.FLOAT, dimensions=(NetcdfDimension.NODE_COUNT,))
             x[:] = self.x

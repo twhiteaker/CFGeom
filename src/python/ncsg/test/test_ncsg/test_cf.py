@@ -4,9 +4,10 @@ import tempfile
 from shapely import wkt
 from shapely.geometry import MultiPoint, Point
 from shapely.geometry.multipolygon import MultiPolygon
+from shapely.geometry.polygon import orient
 
 from ncsg import cf
-from ncsg.constants import BreakValue
+from ncsg.constants import BreakValue, OuterRingOrder, ClosureConvention
 from ncsg.geometry.base import CFGeometryCollection
 from ncsg.test.base import AbstractNCSGTest
 
@@ -125,14 +126,21 @@ class TestPolygon(AbstractNCSGTest):
             poly1 = wkt.loads(self.fixture_wkt[d]['polygon'])
             poly2 = wkt.loads(self.fixture_wkt[d]['polygon_hole'])
 
-            geoms = [poly1, poly2, MultiPolygon([poly1, poly2])]
+            geoms = [orient(poly1, sign=-1.0), poly2, MultiPolygon([poly1, poly2])]
             res = cf.dumps('polygon', geoms)
+            # res.describe()
+            self.assertEqual(res.outer_ring_order, OuterRingOrder.CCW)
+            self.assertEqual(res.closure_convention, ClosureConvention.CLOSED)
             self.assertIsInstance(res, CFGeometryCollection)
 
             for ctr, c in enumerate(res.cindex):
                 loaded = cf.loads('polygon', c, res.x, res.y, z=res.z, multipart_break=res.multipart_break,
                                   hole_break=res.hole_break)
-                self.assertTrue(loaded.almost_equals(geoms[ctr]))
+                if ctr == 0:
+                    desired = orient(geoms[0])
+                else:
+                    desired = geoms[ctr]
+                self.assertTrue(loaded.almost_equals(desired))
 
     def test_dumps_polygon_other(self):
         p1 = 'POLYGON ((0 0, 6 0, 3 6, 0 0), (2 1, 3 2, 4 1, 2 1))'

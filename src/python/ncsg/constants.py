@@ -1,5 +1,5 @@
-
 from shapely.geometry import Point, MultiPoint, Polygon, MultiPolygon, LineString, MultiLineString
+
 
 #: Maps single and multipart types.
 NCSG_GEOM_OBJECT_MAP = {'point': {'single': Point, 'multi': MultiPoint},
@@ -28,3 +28,15 @@ class NetcdfVariable(object):
     X = 'x'
     Y = 'y'
     Z = 'z'
+
+
+class OuterRingOrder(object):
+    NAME = 'outer_ring_order'
+    CCW = 'anticlockwise'
+    CW = 'clockwise'
+
+
+class ClosureConvention(object):
+    NAME = 'closure_convention'
+    INDEPENDENT = 'last_node_independent_of_first'
+    CLOSED = 'last_node_equals_first'

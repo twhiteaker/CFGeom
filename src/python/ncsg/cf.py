@@ -2,8 +2,9 @@ from copy import deepcopy
 
 import numpy as np
 from shapely.geometry.base import BaseGeometry, BaseMultipartGeometry
+from shapely.geometry.polygon import orient
 
-from ncsg.constants import NCSG_GEOM_OBJECT_MAP, BreakValue
+from ncsg.constants import NCSG_GEOM_OBJECT_MAP, BreakValue, OuterRingOrder, ClosureConvention
 from ncsg.geometry.base import CFGeometryCollection
 
 
@@ -59,7 +60,11 @@ def dumps(geom_type, geoms, start_index=0, multipart_break=BreakValue.MULTIPART,
                 cindex += [multipart_break]
             # Get the geometry nodes' coordinates.
             if 'polygon' in geom_type:
-                coords = np.array(geom.exterior.coords)
+                exterior = geom.exterior
+                # Always orient the polygon CCW.
+                if not exterior.is_ccw:
+                    exterior = orient(geom).exterior
+                coords = np.array(exterior.coords)
             else:
                 coords = np.array(geom)
             # Make sure we have a two-dimensional point array.
@@ -79,6 +84,9 @@ def dumps(geom_type, geoms, start_index=0, multipart_break=BreakValue.MULTIPART,
                 # Add interiors/holes if the polygon objects contains them.
                 if len(geom.interiors) > 0:
                     for ii in geom.interiors:
+                        # Always orient holes CW.
+                        if ii.is_ccw:
+                            ii = orient(ii, sign=-1.0)
                         # Add a hole to the coordinate index.
                         cindex += [hole_break]
                         # Convert exterior to a coordinate series and add these values to the coordinate arrays.
@@ -98,8 +106,16 @@ def dumps(geom_type, geoms, start_index=0, multipart_break=BreakValue.MULTIPART,
         # Add the geometries coordinate index array to the collection of index arrays.
         cindex_all.append(cindex)
 
+    if 'polygon' in geom_type:
+        outer_ring_order = OuterRingOrder.CCW
+        closure_convention = ClosureConvention.CLOSED
+    else:
+        outer_ring_order = None
+        closure_convention = None
+
     return CFGeometryCollection(geom_type, cindex_all, x, y, z=z, start_index=start_index,
-                                multipart_break=multipart_break, hole_break=hole_break)
+                                multipart_break=multipart_break, hole_break=hole_break,
+                                outer_ring_order=outer_ring_order, closure_convention=closure_convention)
 
 
 # TODO (bekozi): Add docstring example and way to run test.
