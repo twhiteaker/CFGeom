@@ -66,7 +66,7 @@ class CFGeometryCollection(AbstractNCSGObject):
             ds.createDimension(NetcdfDimension.NODE_COUNT, size=len(self.x))
 
             if cra:
-                from ncsg.cf import ContinuousRaggedArray
+                from ncsg.cra import ContinuousRaggedArray
 
                 cra_obj = ContinuousRaggedArray.from_vlen(self.cindex, start_index=self.start_index)
                 ds.createDimension(NetcdfDimension.GEOMETRY_COUNT, size=len(cra_obj.stops))

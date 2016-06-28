@@ -7,8 +7,8 @@ from shapely.geometry.multipolygon import MultiPolygon
 from shapely.geometry.polygon import orient
 
 from ncsg import cf
-from ncsg.cf import ContinuousRaggedArray
 from ncsg.constants import BreakValue, OuterRingOrder, ClosureConvention
+from ncsg.cra import ContinuousRaggedArray
 from ncsg.geometry.base import CFGeometryCollection
 from ncsg.test.base import AbstractNCSGTest
 
