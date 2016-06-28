@@ -26,6 +26,9 @@ def dumps(geom_type, geoms, start_index=0, multipart_break=BreakValue.MULTIPART,
     :return: :class:`~ncsg.CFGeometryCollection`
     """
 
+    # Only interested in lower-case geometry types.
+    geom_type = geom_type.lower()
+
     # Allow a singleton geometry object to be passed.
     if isinstance(geoms, BaseGeometry):
         itr = [geoms]
@@ -67,18 +70,17 @@ def dumps(geom_type, geoms, start_index=0, multipart_break=BreakValue.MULTIPART,
                 coords = np.array(exterior.coords)
             else:
                 coords = np.array(geom)
-            # Make sure we have a two-dimensional point array.
-            if 'point' in geom_type:
-                coords = coords.reshape(1, -1)
-            # Extent coordinate containers with additional coordinates for the geometry.
-            x += coords[:, 0].tolist()
-            y += coords[:, 1].tolist()
+
+            # Extend coordinate containers with additional coordinates for the geometry.
+            x += _get_coordinates_as_list_(coords, 0)
+            y += _get_coordinates_as_list_(coords, 1)
             if has_z:
-                z += coords[:, 2].tolist()
+                z += _get_coordinates_as_list_(coords, 2)
             # Extend the coordinate index array.
             cindex += range(node_index, node_index + coords.shape[0])
             # Increment the node index accordingly.
             node_index += coords.shape[0]
+
             # Check for polygon interiors.
             try:
                 # Add interiors/holes if the polygon objects contains them.
@@ -285,4 +287,16 @@ def _get_shapely_klass_(geom_type, single=True):
         ret = ret['single']
     else:
         ret = ret['multi']
+    return ret
+
+
+def _get_coordinates_as_list_(coords, column_index):
+    try:
+        ret = coords[:, column_index].tolist()
+    except IndexError:
+        if coords.ndim == 1:
+            coords = coords.reshape(-1, coords.shape[0])
+            ret = _get_coordinates_as_list_(coords, column_index)
+        else:
+            raise
     return ret

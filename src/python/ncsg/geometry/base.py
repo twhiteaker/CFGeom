@@ -42,17 +42,22 @@ class CFGeometryCollection(AbstractNCSGObject):
         if self.z is not None:
             assert len(self.z) == len(self.x)
 
-    def describe(self, cra=False, header=True):
+    def describe(self, cra=False, header=True, capture=False):
         path = os.path.join(tempfile.gettempdir(), '_ncsg_describe_.nc')
         self.write_netcdf(path, cra=cra)
+        ret = None
         try:
             cmd = ['ncdump']
             if header:
                 cmd.append('-h')
             cmd.append(path)
-            subprocess.check_call(cmd)
+            if capture:
+                ret = str(subprocess.check_output(cmd))
+            else:
+                subprocess.check_call(cmd)
         finally:
             os.remove(path)
+        return ret
 
     def write_netcdf(self, path_or_object, cra=False):
         should_close = False

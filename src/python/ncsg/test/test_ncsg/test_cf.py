@@ -48,7 +48,7 @@ class TestStartIndex(AbstractNCSGTest):
 class TestPoint(AbstractNCSGTest):
     def test_dumps_point_3d(self):
         geoms = [Point(1, 2, 10), Point(3, 4, 11), Point(5, 6, 12)]
-        coll = cf.dumps('point', geoms, multipart_break=None)
+        coll = cf.dumps('Point', geoms, multipart_break=None)
         self.assertIsNone(coll.multipart_break)
         self.assertEqual(len(coll.cindex), 3)
         self.assertIsNotNone(coll.z)
