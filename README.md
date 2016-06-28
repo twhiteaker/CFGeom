@@ -1,6 +1,8 @@
 [![Build Status](https://travis-ci.org/bekozi/netCDF-CF-simple-geometry.svg?branch=master)](https://travis-ci.org/bekozi/netCDF-CF-simple-geometry)
 
 # netCDF-CF-simple-geometry
+
+[![Join the chat at https://gitter.im/bekozi/netCDF-CF-simple-geometry](https://badges.gitter.im/bekozi/netCDF-CF-simple-geometry.svg)](https://gitter.im/bekozi/netCDF-CF-simple-geometry?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 **DRAFT** CF Convention for Representing Simple Geometry Types
 
 ## Scope
