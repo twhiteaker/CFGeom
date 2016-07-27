@@ -1,19 +1,135 @@
 from copy import deepcopy
 
 import numpy as np
+from shapely.geometry.base import BaseGeometry, BaseMultipartGeometry
+from shapely.geometry.polygon import orient
 
-from ncsg.constants import NCSG_MULTIPART_BREAK_VALUE, NCSG_HOLE_BREAK_VALUE, NCSG_GEOM_OBJECT_MAP
+from ncsg.constants import NCSG_GEOM_OBJECT_MAP, BreakValue, OuterRingOrder, ClosureConvention
+from ncsg.geometry.base import CFGeometryCollection
 
 
-# TODO (bekozi): Add docstring example and way to run test.
-# TODO (bekozi): Test a polygon with multiple interior rings.
-def loads(cindex, x, y, z=None, geom_type='point', start_index=0, multipart_break=NCSG_MULTIPART_BREAK_VALUE,
-          hole_break=NCSG_HOLE_BREAK_VALUE):
+def dumps(geom_type, geoms, start_index=0, multipart_break=BreakValue.MULTIPART, hole_break=BreakValue.HOLE):
+    """
+    Create a CF geometry collection from a sequence of geometries.
+
+    :param str geom_type: The destination geometry type. Valid values are ``"point"``,
+     ``"linestring"``, ``"polygon"``, and multipart types `"multipoint"``, ``"multilinestring"``, ``"multipolygon"``.
+    :param sequence geoms: A sequence of geometry objects to convert.
+    :param int start_index: The starting index value. The default is Python zero-based indexing. Valid values are ``0``
+     or ``1``.
+    :param int multipart_break: A break value indicating a multipart geometry split. Must be a negative integer value.
+     If ``None``, there will be no attempt to search for multipart splits.
+    :param int hole_break: A break value indicating a hole in the previous polygon. Setting to ``None`` tells the
+     function to not search for holes. Must be a negative integer value. This argument is valid only when decoding
+     polygon geometry objects. All holes (interiors) must be placed after the coordinate index sequence defining the
+     polygon's exterior.
+    :return: :class:`~ncsg.CFGeometryCollection`
+    """
+
+    # Only interested in lower-case geometry types.
+    geom_type = geom_type.lower()
+
+    # Allow a singleton geometry object to be passed.
+    if isinstance(geoms, BaseGeometry):
+        itr = [geoms]
+    else:
+        itr = geoms
+
+    # Holds coordinate index arrays for each geometry.
+    cindex_all = []
+    # Holds all the x coordinate values.
+    x = []
+    # Holds all the y coordinate values.
+    y = []
+    # May hold z coordinate values.
+    z = None
+    # Flag to indicate if there are z values in our geometries.
+    has_z = False
+    # Track the current node index value when creating coordinate index arrays.
+    node_index = start_index
+
+    # Convert each geometry to its coordinate index representation.
+    for ctr_geom_element, geom_element in enumerate(itr):
+        # Coordinate index for the current geometry.
+        cindex = []
+        # Allows us to iterate over single-part and multi-part geometries.
+        for ctr_geom, geom in enumerate(_get_geometry_iter_(geom_element)):
+            # Determine if we have z coordinates in our geometry.
+            if ctr_geom == 0 and ctr_geom_element == 0 and geom.has_z:
+                z = []
+                has_z = True
+            # Add a multi-part break value if we are on the second component of a geometry.
+            if ctr_geom > 0:
+                cindex += [multipart_break]
+            # Get the geometry nodes' coordinates.
+            if 'polygon' in geom_type:
+                exterior = geom.exterior
+                # Always orient the polygon CCW.
+                if not exterior.is_ccw:
+                    exterior = orient(geom).exterior
+                coords = np.array(exterior.coords)
+            else:
+                coords = np.array(geom)
+
+            # Extend coordinate containers with additional coordinates for the geometry.
+            x += _get_coordinates_as_list_(coords, 0)
+            y += _get_coordinates_as_list_(coords, 1)
+            if has_z:
+                z += _get_coordinates_as_list_(coords, 2)
+            # Extend the coordinate index array.
+            cindex += range(node_index, node_index + coords.shape[0])
+            # Increment the node index accordingly.
+            node_index += coords.shape[0]
+
+            # Check for polygon interiors.
+            try:
+                # Add interiors/holes if the polygon objects contains them.
+                if len(geom.interiors) > 0:
+                    for ii in geom.interiors:
+                        # Always orient holes CW.
+                        if ii.is_ccw:
+                            ii = orient(ii, sign=-1.0)
+                        # Add a hole to the coordinate index.
+                        cindex += [hole_break]
+                        # Convert exterior to a coordinate series and add these values to the coordinate arrays.
+                        coords = np.array(ii)
+                        x += coords[:, 0].tolist()
+                        y += coords[:, 1].tolist()
+                        if has_z:
+                            z += coords[:, 2].tolist()
+                        # Add coordinate indices.
+                        cindex += range(node_index, node_index + coords.shape[0])
+                        # Increment the node index.
+                        node_index += coords.shape[0]
+            except AttributeError:
+                # If this is not a polygon, we are not worried about interiors.
+                if 'polygon' in geom_type:
+                    raise
+        # Add the geometries coordinate index array to the collection of index arrays.
+        cindex_all.append(cindex)
+
+    if 'polygon' in geom_type:
+        outer_ring_order = OuterRingOrder.CCW
+        closure_convention = ClosureConvention.CLOSED
+    else:
+        outer_ring_order = None
+        closure_convention = None
+
+    return CFGeometryCollection(geom_type, cindex_all, x, y, z=z, start_index=start_index,
+                                multipart_break=multipart_break, hole_break=hole_break,
+                                outer_ring_order=outer_ring_order, closure_convention=closure_convention)
+
+
+def loads(geom_type, cindex, x, y, z=None, start_index=0, multipart_break=BreakValue.MULTIPART,
+          hole_break=BreakValue.HOLE):
     """
     Load a Shapely geometry object from its CF representation.
 
+    :param geom_type: The destination geometry type. Valid values are ``"point"``, ``"linestring"``, ``"polygon"``, and
+     multipart types `"multipoint"``, ``"multilinestring"``, ``"multipolygon"``.
+    :type geom_type: str
     :param cindex: A one-dimensional integer array containing indices into the coordinate arrays ``x``, ``y``, and
-        optionally ``z``. ``multipart_break`` and ``hole_break`` may be part of this coordinate sequence.
+     optionally ``z``. ``multipart_break`` and ``hole_break`` may be part of this coordinate sequence.
     :type cindex: :class:`numpy.ndarray`
     :param x: A one-dimensional array of x-coordinate values.
     :type x: :class:`numpy.ndarray`
@@ -21,17 +137,15 @@ def loads(cindex, x, y, z=None, geom_type='point', start_index=0, multipart_brea
     :type y: :class:`numpy.ndarray`
     :param z: An optional one-dimensional array of z-coordinate values.
     :type z: ``None`` or :class:`numpy.ndarray`
-    :param geom_type: The destination geometry type. Valid values are ``"point"``, ``"linestring"``, and ``"polygon"``.
-    :type geom_type: str
     :param start_index: The starting index value. The default is Python zero-based indexing. Valid values are ``0`` or
-        ``1``.
+     ``1``.
     :type start_index: int
-    :param multipart_break: A break value indicating a multipart geometry split. Setting to ``None`` tells the function
-        to not search for breaks. Must be a negative integer value.
-    :param hole_break: A break value indicating a hole in the previous polygon. Setting to ``None`` tells the function
-        to not search for breaks. Must be a negative integer value. This argument is valid only when decoding polygon
-        geometry objects. All holes (interiors) must be placed after the coordinate index sequence defining the
-        polygon's exterior.
+    :param int multipart_break: A break value indicating a multipart geometry split. Must be a negative integer value.
+     If ``None``, there will be no attempt to search for multipart splits.
+    :param int hole_break: A break value indicating a hole in the previous polygon. Setting to ``None`` tells the
+     function to not search for holes. Must be a negative integer value. This argument is valid only when decoding
+     polygon geometry objects. All holes (interiors) must be placed after the coordinate index sequence defining the
+     polygon's exterior.
     :return: The Shapely object representing the geometry.
     :rtype: :class:`shapely.geometry.base.BaseGeometry`
     :raises: ValueError
@@ -40,7 +154,7 @@ def loads(cindex, x, y, z=None, geom_type='point', start_index=0, multipart_brea
     # Don't be concerned about case with the geometry type.
     geom_type = geom_type.lower()
     # Determine the shapely geometry type.
-    shapely_type = NCSG_GEOM_OBJECT_MAP[geom_type]['single']
+    shapely_type = _get_shapely_klass_(geom_type, single=True)
     # Convert the coordinate index array to a NumPy integer array. This is the only actual NumPy array that is
     # required.
     cindex = np.array(cindex, dtype=int)
@@ -52,9 +166,9 @@ def loads(cindex, x, y, z=None, geom_type='point', start_index=0, multipart_brea
     # Adjust indices to zero-based.
     if start_index == 1:
         cindex = deepcopy(cindex)
-        cindex[cindex>0] -= 1  # Don't adjust the break values.
+        cindex[cindex > 0] -= 1  # Don't adjust the break values.
 
-    # Split geometries if a multipart break value is provided. Otherwise, we'll operate on the single split.
+    # Split geometries if there is a break value to use. Otherwise, we'll operate on the single split.
     if multipart_break is None:
         splits = [cindex]
     else:
@@ -62,7 +176,7 @@ def loads(cindex, x, y, z=None, geom_type='point', start_index=0, multipart_brea
     len_splits = len(splits)
 
     # Convert and extract hole coordinate indices.
-    if geom_type == 'polygon':
+    if 'polygon' in geom_type:
         holes = _get_holes_(hole_break, splits, x, y, z=z)
     else:
         holes = None
@@ -72,10 +186,10 @@ def loads(cindex, x, y, z=None, geom_type='point', start_index=0, multipart_brea
 
     # Convert the coordinate indices to the geometry object. There are separate paths for a single and multi-geometry.
     if len_splits == 1:
-        if geom_type == 'point':
+        if 'point' in geom_type:
             # Point coordinate sequences are not nested.
             ret = shapely_type(*coords[0])
-        elif geom_type == 'polygon':
+        elif 'polygon' in geom_type:
             # Polygons optionally require information on holes/interiors. Passing an empty list is okay with Shapely.
             ret = shapely_type(coords[0], holes[0])
         else:
@@ -84,18 +198,22 @@ def loads(cindex, x, y, z=None, geom_type='point', start_index=0, multipart_brea
     else:
         # With the exception of a polygon, multipart geometries are first converted to single part before being passed
         # to the multipart converter.
-        multi = [None] * len_splits
-        if geom_type == 'point':
+        ret = [None] * len_splits
+        if 'point' in geom_type:
             # Remove a list level for multipoints.
             coords = [c[0] for c in coords]
         # Convert to the single part geometries.
         for idx, c in enumerate(coords):
-            if geom_type == 'polygon':
-                multi[idx] = shapely_type(c, holes[idx])
+            if 'polygon' in geom_type:
+                ret[idx] = shapely_type(c, holes[idx])
             else:
-                multi[idx] = shapely_type(c)
+                ret[idx] = shapely_type(c)
+    if len_splits > 1 or geom_type.startswith('multi'):
+        if len_splits == 1:
+            # Only one split, but we want to convert to a multi-geometry.
+            ret = [ret]
         # Collect the single part geometries into a multipart collection.
-        ret = NCSG_GEOM_OBJECT_MAP[geom_type]['multi'](multi)
+        ret = _get_shapely_klass_(geom_type, single=False)(ret)
 
     return ret
 
@@ -151,3 +269,34 @@ def _extract_coordinates_(splits, x, y, z=None):
             sub_coords[sub_split_idx] = sapp
         coords[idx_split] = sub_coords
     return coords
+
+
+def _get_geometry_iter_(geom):
+    if isinstance(geom, BaseMultipartGeometry):
+        ret = geom
+    else:
+        ret = [geom]
+    return ret
+
+
+def _get_shapely_klass_(geom_type, single=True):
+    if geom_type.startswith('multi'):
+        geom_type = geom_type[5:]
+    ret = NCSG_GEOM_OBJECT_MAP[geom_type]
+    if single:
+        ret = ret['single']
+    else:
+        ret = ret['multi']
+    return ret
+
+
+def _get_coordinates_as_list_(coords, column_index):
+    try:
+        ret = coords[:, column_index].tolist()
+    except IndexError:
+        if coords.ndim == 1:
+            coords = coords.reshape(-1, coords.shape[0])
+            ret = _get_coordinates_as_list_(coords, column_index)
+        else:
+            raise
+    return ret

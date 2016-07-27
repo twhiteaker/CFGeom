@@ -15,7 +15,7 @@ before_install:
   - conda info -a
 
 install:
-  - travis_retry conda create -n test-full $CONDA_PYTHON shapely pytest numpy
+  - travis_retry conda create -n test-full $CONDA_PYTHON shapely pytest numpy netCDF4
   - source activate test-full
 
 script:
