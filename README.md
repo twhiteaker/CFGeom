@@ -11,22 +11,22 @@
 * Linear between nodes, not curves?
 * Parametric shapes, e.g., circles, ellipses?
 
-## Use Cases (not exhaustive)
+## Use Cases
 
 * Encode watershed model time series and polygons in single file. Archiving the model output and geometry is the purpose.
 * Encode a streamflow value for each river segment in the conterminous U.S. at a given point in time.
 
 ## Proposal
 
-* Extend the CF timeseries feature type.
-* Polygon or polyline used for spatial 'coordinates' of a timeseries variable.
+* Support line and polygon geometry in netCDF-3 and enhanced netCDF-4. 
+* Define a standard that the CF timeseries feature type could use to specify spatial 'coordinates' of a timeseries variable.
 * Mimic well known text style for encoding multipolygons with holes and multilines.
 
 ## Data Elements and Structure
 
 For discussion, the structure and attributes below should be what's needed to store a polygon as the spatial coordinates of a `timeSeries` CF `featuretype`. This is using a rectangular array for the time series data and a contiguous ragged array (indexed ragged array would be silly) for the polygon nodes. In CF 2 we would expect the ragged array notation to change to a variable length data field that uses more natural 2d indexing.
 
-### Representation of WKT-style polygons using NetCDF3.
+### Representation of WKT-style polygons using NetCDF-3.
 
 The important detail this new convention would require are the standard\_name "polygon x node" and "polygon y node" otherwise, the data structures all adopt from the existing CF contiguous or incomplete ragged array formats. A file holding only polygon information without a timeSeries featureType would look like:
 
