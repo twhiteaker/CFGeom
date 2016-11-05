@@ -1,5 +1,6 @@
 import json
 import os
+import subprocess
 from abc import ABCMeta
 from unittest.case import TestCase
 
@@ -25,3 +26,10 @@ class AbstractNCSGTest(TestCase):
     @property
     def path_fixture_wkt(self):
         return os.path.join(self.path_data, 'fixture_wkt.json')
+
+    def ncdump(self, path, header=True):
+        cmd = ['ncdump']
+        if header:
+            cmd.append('-h')
+        cmd.append(path)
+        subprocess.check_call(cmd)
