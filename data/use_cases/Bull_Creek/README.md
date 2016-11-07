@@ -1,9 +1,7 @@
 # Bull Creek
 
-nwm_bullcreek.cdl is a CDL representation of a netCDF file extracted from example National Water Model results. The file includes modeled stream discharge for a single time step for streams within the Bull Creek Watershed in Austin, Texas. Streamflow values are indexed by a station_id, which is actually the National Hydrography Dataset COMID uniquely identifying the stream feature for which the streamflow value applies. The line geometry for each COMID is stored in the GeoJSON file named nhd_flowline.json.
+nwm_bullcreek.cdl is a CDL representation of a netCDF file generated from the 2016-11-07T19Z short range forecast from the National Water Model. The file includes modeled stream discharge for streams within the Bull Creek Watershed in Austin, Texas. Streamflow values are indexed by a station_id, which is the National Hydrography Dataset Plus (NHDPlus) COMID uniquely identifying the stream feature for which the streamflow value applies. The line geometry for each COMID is stored in the GeoJSON file named nhd_flowline.json.  NHDPlus flowlines typically include polygons representing local catchments area for each flowline; those catchments are stored in the GeoJSON file named nhd_catchment. The National Water Center, which runs the National Water Model, includes coordinates of the upstream end of each modeled river segment to support spatial display. These points for Bull Creek are in the GeoJSON file named upstream_point.json.
 
-This use case would demonstrate how simple line features (LineString WKT type) could be used to provide the spatial coordinates for modeled values associate with discrete river features.
-
-The original model results from which the Bull Creek data were extracted can be found at http://para.nomads.ncep.noaa.gov/pub/data/nccf/com/nwm/para/nwm.20160526/medium_range/ in a file named nwm.t06z.medium_range.channel_rt.f018.conus.nc.gz.
+This use case would demonstrate how simple point, line, and polygon features could provide the spatial coordinates for modeled values associated with discrete river features.
 
 For more about the National Water Model, see http://water.noaa.gov/about/nwm.
