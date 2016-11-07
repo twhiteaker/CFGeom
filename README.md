@@ -29,7 +29,10 @@ Descrete Sampling Geometries (DSGs) handle data from one or a collection of `Tim
 DSGs have no system to define a geometry (point, polyline, polygon, etc) and an association with a time series that applies over that entire geometry e.g, The expected rainfall in this watershed polygon for some period of time is 10 mm. Current practice is to assign a nominal point (centroid?) or just use an ID and forgo spatial information within a NetCDF-CF file. In order to satisfy a number of environmental modeling use cases, we need a way to encode a geometry (point, line, polygon, multiLine, or multiPolygon) that is the static spatial element for which a one or more timeseries can be associated to.
 
 ## How does what we are proposing work with / build on DSGs?
-In this proposal, we intend to extend the CF DSG `TimeSeries` featuretype allowing for the spatial coordinates of each feature to be a complete geometry. Further building on the DSG baseline, the ragged arrays of coordinates with dimensions (number of geometries) X (number of coordinates in each geometry) is encoded using DSG-style ragged array encoding currently used for arrays with dimensions (number of geometries) X (number of time steps for each geometry). 
+In this proposal, we intend to provide an encoding to define collections of geometries (point, line, 
+polygon, multiLine, or multiPolygon). This will interface cleanly with the information encoded in Discrete 
+Sampling Geometries, enabling DSGs and Geometries to be used in tandem to describe relevant 
+datasets.
 
 # _should update the content below to reflect latest wiki content_
 ## Data Elements and Structure
