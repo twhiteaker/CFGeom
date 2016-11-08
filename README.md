@@ -22,6 +22,19 @@
 * Define a standard that the CF timeseries feature type could use to specify spatial 'coordinates' of a timeseries variable.
 * Mimic well known text style for encoding multipolygons with holes and multilines.
 
+## What does the existing DSG specification do that's similar to this proposal? 
+Descrete Sampling Geometries (DSGs) handle data from one or a collection of `TimeSeries` (point), `Trajectory`, `Profile`, `TrajectoryProfile` or `TimeSeriesProfile` geometries. Measurements are from a **point** (TimeSeries and Profile) or **points** along a trajectory. In this proposal we reuse the core DSG `Timeseries` type which provides support for basic time series use cases e.g., a TimeSeries which is measured (or modeled) at a given point.
+
+## What doesn't DSG do that we need? 
+DSGs have no system to define a geometry (point, polyline, polygon, etc) and an association with a time series that applies over that entire geometry e.g, The expected rainfall in this watershed polygon for some period of time is 10 mm. Current practice is to assign a nominal point (centroid?) or just use an ID and forgo spatial information within a NetCDF-CF file. In order to satisfy a number of environmental modeling use cases, we need a way to encode a geometry (point, line, polygon, multiLine, or multiPolygon) that is the static spatial element for which a one or more timeseries can be associated to.
+
+## How does what we are proposing work with / build on DSGs?
+In this proposal, we intend to provide an encoding to define collections of geometries (point, line, 
+polygon, multiLine, or multiPolygon). This will interface cleanly with the information encoded in Discrete 
+Sampling Geometries, enabling DSGs and Geometries to be used in tandem to describe relevant 
+datasets.
+
+# _should update the content below to reflect latest wiki content_
 ## Data Elements and Structure
 
 For discussion, the structure and attributes below should be what's needed to store a polygon as the spatial coordinates of a `timeSeries` CF `featuretype`. This is using a rectangular array for the time series data and a contiguous ragged array (indexed ragged array would be silly) for the polygon nodes. In CF 2 we would expect the ragged array notation to change to a variable length data field that uses more natural 2d indexing.
