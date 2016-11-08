@@ -7,10 +7,34 @@ from shapely.geometry.multipolygon import MultiPolygon
 from shapely.geometry.polygon import orient
 
 from ncsg import cf
-from ncsg.constants import BreakValue, OuterRingOrder, ClosureConvention
+from ncsg.cf import loads_from_netcdf
+from ncsg.constants import BreakValue, OuterRingOrder, ClosureConvention, NetcdfVariable
 from ncsg.cra import ContinuousRaggedArray
 from ncsg.geometry.base import CFGeometryCollection
 from ncsg.test.base import AbstractNCSGTest
+
+
+class Test(AbstractNCSGTest):
+    def test_loads_from_netcdf(self):
+        for dim, wkts in self.fixture_wkt.items():
+            for geom_type, wktvalue in wkts.items():
+                geom = wkt.loads(wktvalue)
+                coll = cf.dumps(geom.geom_type, geom)
+                path = self.get_temporary_file_path('{}_{}.nc'.format(dim, geom_type))
+                coll.write_netcdf(path)
+                loaded_coll = loads_from_netcdf(path)[0]
+                self.assertTrue(geom.almost_equals(loaded_coll.as_shapely()[0]))
+                self.assertTrue(coll.as_shapely()[0].almost_equals(loaded_coll.as_shapely()[0]))
+                self.assertEqual(loaded_coll, coll)
+
+        # Test with a target.
+        wktvalue = self.fixture_wkt['2d']['point']
+        geom = wkt.loads(wktvalue)
+        coll = cf.dumps(geom.geom_type, geom)
+        path = self.get_temporary_file_path('target.nc')
+        coll.write_netcdf(path)
+        loaded = loads_from_netcdf(path, target=NetcdfVariable.COORDINATE_INDEX)[0]
+        self.assertEqual(coll, loaded)
 
 
 class TestContinuousRaggedArray(AbstractNCSGTest):

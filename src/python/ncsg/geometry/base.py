@@ -6,8 +6,10 @@ from abc import ABCMeta
 import netCDF4 as nc
 import numpy as np
 
+from ncsg import cf
 from ncsg.base import AbstractNCSGObject
-from ncsg.constants import NetcdfDimension, DataType, NetcdfVariable, OuterRingOrder, ClosureConvention
+from ncsg.constants import NetcdfDimension, DataType, NetcdfVariable, OuterRingOrder, ClosureConvention, StopEncoding, \
+    GeneralAttributes
 
 
 class CFGeometryCollection(AbstractNCSGObject):
@@ -19,6 +21,7 @@ class CFGeometryCollection(AbstractNCSGObject):
 
     def __init__(self, geom_type, cindex, x, y, z=None, start_index=0, multipart_break=None, hole_break=None,
                  outer_ring_order=None, closure_convention=ClosureConvention.INDEPENDENT):
+        geom_type = geom_type.lower()
         if geom_type.startswith('multi'):
             assert multipart_break is not None
 
@@ -41,6 +44,35 @@ class CFGeometryCollection(AbstractNCSGObject):
         assert len(self.x) == len(self.y)
         if self.z is not None:
             assert len(self.z) == len(self.x)
+
+    def __eq__(self, other):
+        ret = True
+        for k, v in self.__dict__.items():
+            ov = other.__dict__[k]
+            try:
+                if k == GeneralAttributes.GEOM_TYPE_NAME:
+                    if v.lower() != ov.lower():
+                        raise AssertionError('Geometry types are not equal.')
+                elif k == 'cindex':
+                    for idx in range(len(v)):
+                        _assert_array_equal_(v[idx], ov[idx])
+                elif k in ['x', 'y', 'z']:
+                    _assert_array_equal_(v, ov)
+                else:
+                    if v != ov:
+                        raise AssertionError('"{}" are not equal.'.format(k))
+            except AssertionError as _:
+                ret = False
+        return ret
+
+    def as_shapely(self):
+        ret = [None] * len(self.cindex)
+        for idx in range(len(self.cindex)):
+            geom = cf.loads(self.geom_type, self.cindex[idx], self.x, self.y, z=self.z, start_index=self.start_index,
+                            multipart_break=self.multipart_break, hole_break=self.hole_break)
+            ret[idx] = geom
+
+        return tuple(ret)
 
     def describe(self, cra=False, header=True, capture=False):
         path = os.path.join(tempfile.gettempdir(), '_ncsg_describe_.nc')
@@ -87,14 +119,19 @@ class CFGeometryCollection(AbstractNCSGObject):
                                            dimensions=(NetcdfDimension.GEOMETRY_COUNT,))
 
             if cra:
+                stop_encoding = StopEncoding.CRA
                 cindex_value = cra_obj.value
                 stops[:] = cra_obj.stops
                 stops.continuous_ragged_dimension = NetcdfDimension.CRA_NODE_INDEX
             else:
+                stop_encoding = StopEncoding.VLEN
                 cindex_value = self.cindex
             cindex[:] = cindex_value
 
+            cindex.cf_role = GeneralAttributes.CF_ROLE_VALUE
             cindex.geom_type = self.geom_type
+            setattr(cindex, StopEncoding.NAME, stop_encoding)
+
             coordinates = [NetcdfVariable.X, NetcdfVariable.Y]
             if self.z is not None:
                 coordinates.append(NetcdfVariable.Z)
@@ -121,3 +158,13 @@ class CFGeometryCollection(AbstractNCSGObject):
         finally:
             if should_close:
                 ds.close()
+
+
+def _assert_array_equal_(actual, desired):
+    actual = np.array(actual)
+    desired = np.array(desired)
+    if actual.dtype != desired.dtype:
+        raise AssertionError('Data types are not equal.')
+    cmp = actual == desired
+    if not cmp.all():
+        raise AssertionError('Not all values are equal.')

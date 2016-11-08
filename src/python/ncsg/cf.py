@@ -1,10 +1,14 @@
 from copy import deepcopy
 
+import netCDF4 as nc
 import numpy as np
+from _pytest.assertion.util import basestring
 from shapely.geometry.base import BaseGeometry, BaseMultipartGeometry
 from shapely.geometry.polygon import orient
 
-from ncsg.constants import NCSG_GEOM_OBJECT_MAP, BreakValue, OuterRingOrder, ClosureConvention
+from ncsg.constants import NCSG_GEOM_OBJECT_MAP, BreakValue, OuterRingOrder, ClosureConvention, GeneralAttributes, \
+    StopEncoding
+from ncsg.exc import NoCoordinateIndexVariablesFoundError
 from ncsg.geometry.base import CFGeometryCollection
 
 
@@ -72,14 +76,16 @@ def dumps(geom_type, geoms, start_index=0, multipart_break=BreakValue.MULTIPART,
                 coords = np.array(geom)
 
             # Extend coordinate containers with additional coordinates for the geometry.
-            x += _get_coordinates_as_list_(coords, 0)
+            x_coords = _get_coordinates_as_list_(coords, 0)
+            x += x_coords
             y += _get_coordinates_as_list_(coords, 1)
             if has_z:
                 z += _get_coordinates_as_list_(coords, 2)
             # Extend the coordinate index array.
-            cindex += range(node_index, node_index + coords.shape[0])
+            len_x_coords = len(x_coords)
+            cindex += range(node_index, node_index + len_x_coords)
             # Increment the node index accordingly.
-            node_index += coords.shape[0]
+            node_index += len_x_coords
 
             # Check for polygon interiors.
             try:
@@ -300,3 +306,74 @@ def _get_coordinates_as_list_(coords, column_index):
         else:
             raise
     return ret
+
+
+def loads_from_netcdf(path_or_object, target=None):
+    # TODO: doc and commenting
+    # TODO: order
+    should_close = False
+    if isinstance(path_or_object, nc.Dataset):
+        ds = path_or_object
+    else:
+        ds = nc.Dataset(path_or_object)
+        should_close = True
+
+    try:
+        if target is None:
+            target = _find_coordinate_index_variables_(ds.variables.values())
+            if len(target) == 0:
+                raise NoCoordinateIndexVariablesFoundError
+        else:
+            if isinstance(target, basestring):
+                target = [target]
+
+        ret = []
+        for tvar in target:
+            ncvar = ds.variables[tvar]
+            stop_encoding = _get_stop_encoding_(ncvar)
+            coordinates = _get_nodes_(ncvar, ds)
+            if stop_encoding == StopEncoding.VLEN:
+                gc = CFGeometryCollection(ncvar.__dict__[GeneralAttributes.GEOM_TYPE_NAME], ncvar[:], coordinates['x'],
+                                          coordinates['y'], z=coordinates.get('z'),
+                                          start_index=getattr(ncvar, 'start_index', 0),
+                                          multipart_break=getattr(ncvar, 'multipart_break_value', None),
+                                          hole_break=getattr(ncvar, 'hole_break_value', BreakValue.HOLE),
+                                          outer_ring_order=getattr(ncvar, 'outer_ring_order', None),
+                                          closure_convention=getattr(ncvar, 'closure_convention', None))
+            elif stop_encoding == StopEncoding.CRA:
+                raise NotImplementedError
+            else:
+                raise NotImplementedError("{} not recognized: {}".format(StopEncoding.NAME, stop_encoding))
+            ret.append(gc)
+        return tuple(ret)
+    finally:
+        if should_close:
+            ds.close()
+
+
+def _find_coordinate_index_variables_(variables):
+    ret = []
+    for var in variables:
+        if 'cf_role' in var.ncattrs() and var.cf_role == GeneralAttributes.CF_ROLE_VALUE:
+            ret.append(var.name)
+    return ret
+
+
+def _get_nodes_(nc_cindex, nc_ds):
+    coordinates = nc_cindex.coordinates.split(' ')
+    keys = ['x', 'y', 'z']
+    ret = {}
+    for idx, key in enumerate(keys):
+        try:
+            ret[key] = nc_ds.variables[coordinates[idx]][:]
+        except IndexError:
+            # There may not be a z coordinate in the data file. Set the z value to None and continue.
+            if key == 'z':
+                ret['z'] = None
+            else:
+                raise
+    return ret
+
+
+def _get_stop_encoding_(nc_cindex):
+    return nc_cindex.__dict__[StopEncoding.NAME]

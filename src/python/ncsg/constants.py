@@ -7,9 +7,21 @@ NCSG_GEOM_OBJECT_MAP = {'point': {'single': Point, 'multi': MultiPoint},
                         'polygon': {'single': Polygon, 'multi': MultiPolygon}}
 
 
+class GeneralAttributes(object):
+    CF_ROLE_NAME = 'cf_role'
+    CF_ROLE_VALUE = 'simple_geom'
+    GEOM_TYPE_NAME = 'geom_type'
+
+
 class BreakValue(object):
     MULTIPART = -1
     HOLE = -2
+
+
+class ClosureConvention(object):
+    NAME = 'closure_convention'
+    INDEPENDENT = 'last_node_independent_of_first'
+    CLOSED = 'last_node_equals_first'
 
 
 class DataType(object):
@@ -38,7 +50,7 @@ class OuterRingOrder(object):
     CW = 'clockwise'
 
 
-class ClosureConvention(object):
-    NAME = 'closure_convention'
-    INDEPENDENT = 'last_node_independent_of_first'
-    CLOSED = 'last_node_equals_first'
+class StopEncoding(object):
+    CRA = 'cra'
+    VLEN = 'vlen'
+    NAME = 'stop_encoding'
