@@ -68,8 +68,9 @@ class CFGeometryCollection(AbstractNCSGObject):
     def as_shapely(self):
         ret = [None] * len(self.cindex)
         for idx in range(len(self.cindex)):
-            geom = cf.loads(self.geom_type, self.cindex[idx], self.x, self.y, z=self.z, start_index=self.start_index,
-                            multipart_break=self.multipart_break, hole_break=self.hole_break)
+            geom = cf.to_shapely(self.geom_type, self.cindex[idx], self.x, self.y, z=self.z,
+                                 start_index=self.start_index,
+                                 multipart_break=self.multipart_break, hole_break=self.hole_break)
             ret[idx] = geom
 
         return tuple(ret)
@@ -91,7 +92,10 @@ class CFGeometryCollection(AbstractNCSGObject):
             os.remove(path)
         return ret
 
-    def write_netcdf(self, path_or_object, cra=False):
+    def write_netcdf(self, path_or_object, cra=False, string_id=None):
+        if string_id is None:
+            string_id = ''
+
         should_close = False
         if isinstance(path_or_object, nc.Dataset):
             ds = path_or_object
@@ -100,29 +104,39 @@ class CFGeometryCollection(AbstractNCSGObject):
             should_close = True
 
         try:
-            ds.createDimension(NetcdfDimension.NODE_COUNT, size=len(self.x))
+            dname_node_count = '{}{}'.format(string_id, NetcdfDimension.NODE_COUNT)
+            dname_geom_count = '{}{}'.format(string_id, NetcdfDimension.GEOMETRY_COUNT)
+            vname_cindex = '{}{}'.format(string_id, NetcdfVariable.COORDINATE_INDEX)
+            vname_x = '{}{}'.format(string_id, NetcdfVariable.X)
+            vname_y = '{}{}'.format(string_id, NetcdfVariable.Y)
+            vname_z = '{}{}'.format(string_id, NetcdfVariable.Z)
 
+            ds.createDimension(dname_node_count, size=len(self.x))
             if cra:
                 from ncsg.cra import ContinuousRaggedArray
 
+                dname_cra_node_index = '{}{}'.format(string_id, NetcdfDimension.CRA_NODE_INDEX)
+                vname_cra_stop = '{}{}'.format(string_id, NetcdfVariable.CRA_STOP)
+
                 cra_obj = ContinuousRaggedArray.from_vlen(self.cindex, start_index=self.start_index)
-                ds.createDimension(NetcdfDimension.GEOMETRY_COUNT, size=len(cra_obj.stops))
-                ds.createDimension(NetcdfDimension.CRA_NODE_INDEX, size=len(cra_obj.value))
-                cindex = ds.createVariable(NetcdfVariable.COORDINATE_INDEX, DataType.INT,
-                                           dimensions=(NetcdfDimension.CRA_NODE_INDEX,))
-                stops = ds.createVariable(NetcdfVariable.CRA_STOP, DataType.INT,
-                                          dimensions=(NetcdfDimension.GEOMETRY_COUNT,))
+                ds.createDimension(dname_geom_count, size=len(cra_obj.stops))
+                ds.createDimension(dname_cra_node_index, size=len(cra_obj.value))
+                cindex = ds.createVariable(vname_cindex, DataType.INT, dimensions=(dname_cra_node_index,))
+                stops = ds.createVariable(vname_cra_stop, DataType.INT, dimensions=(dname_geom_count,))
             else:
-                ds.createDimension(NetcdfDimension.GEOMETRY_COUNT, size=len(self.cindex))
-                vltype = ds.createVLType(DataType.INT, DataType.GEOMETRY_VLTYPE)
-                cindex = ds.createVariable(NetcdfVariable.COORDINATE_INDEX, vltype,
-                                           dimensions=(NetcdfDimension.GEOMETRY_COUNT,))
+                ds.createDimension(dname_geom_count, size=len(self.cindex))
+                try:
+                    vltype = ds.createVLType(DataType.INT, DataType.GEOMETRY_VLTYPE)
+                except RuntimeError:
+                    # Type is likely already created. Try to access it.
+                    vltype = ds.vltypes[DataType.GEOMETRY_VLTYPE]
+                cindex = ds.createVariable(vname_cindex, vltype, dimensions=(dname_geom_count,))
 
             if cra:
                 stop_encoding = StopEncoding.CRA
                 cindex_value = cra_obj.value
                 stops[:] = cra_obj.stops
-                stops.continuous_ragged_dimension = NetcdfDimension.CRA_NODE_INDEX
+                stops.continuous_ragged_dimension = dname_cra_node_index
             else:
                 stop_encoding = StopEncoding.VLEN
                 cindex_value = self.cindex
@@ -132,9 +146,9 @@ class CFGeometryCollection(AbstractNCSGObject):
             cindex.geom_type = self.geom_type
             setattr(cindex, StopEncoding.NAME, stop_encoding)
 
-            coordinates = [NetcdfVariable.X, NetcdfVariable.Y]
+            coordinates = [vname_x, vname_y]
             if self.z is not None:
-                coordinates.append(NetcdfVariable.Z)
+                coordinates.append(vname_z)
             cindex.coordinates = ' '.join(coordinates)
             if self.multipart_break is not None:
                 cindex.multipart_break_value = self.multipart_break
@@ -145,14 +159,14 @@ class CFGeometryCollection(AbstractNCSGObject):
                     setattr(cindex, OuterRingOrder.NAME, self.outer_ring_order)
                 setattr(cindex, ClosureConvention.NAME, self.closure_convention)
 
-            x = ds.createVariable(NetcdfVariable.X, DataType.FLOAT, dimensions=(NetcdfDimension.NODE_COUNT,))
+            x = ds.createVariable(vname_x, DataType.FLOAT, dimensions=(dname_node_count,))
             x[:] = self.x
 
-            y = ds.createVariable(NetcdfVariable.Y, DataType.FLOAT, dimensions=(NetcdfDimension.NODE_COUNT,))
+            y = ds.createVariable(vname_y, DataType.FLOAT, dimensions=(dname_node_count,))
             y[:] = self.y
 
             if self.z is not None:
-                z = ds.createVariable(NetcdfVariable.Z, DataType.FLOAT, dimensions=(NetcdfDimension.NODE_COUNT,))
+                z = ds.createVariable(vname_z, DataType.FLOAT, dimensions=(dname_node_count,))
                 z[:] = self.z
 
         finally:
