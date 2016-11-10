@@ -12,7 +12,8 @@ from ncsg.exc import NoCoordinateIndexVariablesFoundError
 from ncsg.geometry.base import CFGeometryCollection
 
 
-def from_shapely(geom_type, geoms, start_index=0, multipart_break=BreakValue.MULTIPART, hole_break=BreakValue.HOLE):
+def from_shapely(geom_type, geoms, start_index=0, multipart_break=BreakValue.MULTIPART, hole_break=BreakValue.HOLE,
+                 string_id=None):
     """
     Create a CF geometry collection from a sequence of geometries.
 
@@ -123,7 +124,8 @@ def from_shapely(geom_type, geoms, start_index=0, multipart_break=BreakValue.MUL
 
     return CFGeometryCollection(geom_type, cindex_all, x, y, z=z, start_index=start_index,
                                 multipart_break=multipart_break, hole_break=hole_break,
-                                outer_ring_order=outer_ring_order, closure_convention=closure_convention)
+                                outer_ring_order=outer_ring_order, closure_convention=closure_convention,
+                                string_id=string_id)
 
 
 def to_shapely(geom_type, cindex, x, y, z=None, start_index=0, multipart_break=BreakValue.MULTIPART,

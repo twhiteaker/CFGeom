@@ -20,7 +20,7 @@ class CFGeometryCollection(AbstractNCSGObject):
     __metaclass__ = ABCMeta
 
     def __init__(self, geom_type, cindex, x, y, z=None, start_index=0, multipart_break=None, hole_break=None,
-                 outer_ring_order=None, closure_convention=ClosureConvention.INDEPENDENT):
+                 outer_ring_order=None, closure_convention=ClosureConvention.INDEPENDENT, string_id=None):
         geom_type = geom_type.lower()
         if geom_type.startswith('multi'):
             assert multipart_break is not None
@@ -29,6 +29,9 @@ class CFGeometryCollection(AbstractNCSGObject):
         for idx, ii in enumerate(cindex):
             cindex_new[idx] = np.array(ii, dtype=DataType.INT)
 
+        if string_id is None:
+            string_id = ''
+        self.string_id = string_id
         self.cindex = cindex_new
         self.x = x
         self.y = y
@@ -40,6 +43,10 @@ class CFGeometryCollection(AbstractNCSGObject):
         self.hole_break = hole_break
         self.outer_ring_order = outer_ring_order
         self.closure_convention = closure_convention
+
+        self.cf_names = {'variables': {'coordinate_index': '{}{}'.format(string_id,
+                                                                         NetcdfVariable.COORDINATE_INDEX)},
+                         'dimensions': {'geometry_count': '{}{}'.format(string_id, NetcdfDimension.GEOMETRY_COUNT)}}
 
         assert len(self.x) == len(self.y)
         if self.z is not None:
@@ -69,8 +76,8 @@ class CFGeometryCollection(AbstractNCSGObject):
         ret = [None] * len(self.cindex)
         for idx in range(len(self.cindex)):
             geom = cf.to_shapely(self.geom_type, self.cindex[idx], self.x, self.y, z=self.z,
-                                 start_index=self.start_index,
-                                 multipart_break=self.multipart_break, hole_break=self.hole_break)
+                                 start_index=self.start_index, multipart_break=self.multipart_break,
+                                 hole_break=self.hole_break)
             ret[idx] = geom
 
         return tuple(ret)
@@ -92,9 +99,8 @@ class CFGeometryCollection(AbstractNCSGObject):
             os.remove(path)
         return ret
 
-    def write_netcdf(self, path_or_object, cra=False, string_id=None):
-        if string_id is None:
-            string_id = ''
+    def write_netcdf(self, path_or_object, cra=False):
+        string_id = self.string_id
 
         should_close = False
         if isinstance(path_or_object, nc.Dataset):
@@ -105,11 +111,11 @@ class CFGeometryCollection(AbstractNCSGObject):
 
         try:
             dname_node_count = '{}{}'.format(string_id, NetcdfDimension.NODE_COUNT)
-            dname_geom_count = '{}{}'.format(string_id, NetcdfDimension.GEOMETRY_COUNT)
-            vname_cindex = '{}{}'.format(string_id, NetcdfVariable.COORDINATE_INDEX)
+            dname_geom_count = self.cf_names['dimensions']['geometry_count']
             vname_x = '{}{}'.format(string_id, NetcdfVariable.X)
             vname_y = '{}{}'.format(string_id, NetcdfVariable.Y)
             vname_z = '{}{}'.format(string_id, NetcdfVariable.Z)
+            vname_cindex = self.cf_names['variables']['coordinate_index']
 
             ds.createDimension(dname_node_count, size=len(self.x))
             if cra:

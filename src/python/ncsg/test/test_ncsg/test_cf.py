@@ -78,7 +78,7 @@ class TestPoint(AbstractNCSGTest):
         self.assertIsNotNone(coll.z)
         # coll.describe(cra=True, header=False)
 
-    def test_loads_point_2d(self):
+    def test_to_shapely_point_2d(self):
         cindex = [1]
         x = [30]
         y = [10]
@@ -91,7 +91,7 @@ class TestPoint(AbstractNCSGTest):
         mpt = cf.to_shapely('multipoint', cindex, x, y, start_index=1)
         self.assertIsInstance(mpt, MultiPoint)
 
-    def test_loads_point_3d(self):
+    def test_to_shapely_point_3d(self):
         cindex = [0]
         x = [30]
         y = [10]
@@ -101,7 +101,7 @@ class TestPoint(AbstractNCSGTest):
         desired = wkt.loads(self.fixture_wkt['3d']['point'])
         self.assertEqual(pt, desired)
 
-    def test_loads_point_2d_multipart(self):
+    def test_to_shapely_point_2d_multipart(self):
         cindex = [0, BreakValue.MULTIPART, 1, BreakValue.MULTIPART, 2, BreakValue.MULTIPART, 3]
         x = [10, 40, 20, 30]
         y = [40, 30, 20, 10]
@@ -110,7 +110,7 @@ class TestPoint(AbstractNCSGTest):
         desired = wkt.loads(self.fixture_wkt['2d']['multipoint'])
         self.assertEqual(mpt, desired)
 
-    def test_loads_point_3d_multipart(self):
+    def test_to_shapely_point_3d_multipart(self):
         cindex = [0, BreakValue.MULTIPART, 1, BreakValue.MULTIPART, 2, BreakValue.MULTIPART, 3]
         x = [10, 40, 20, 30]
         y = [40, 30, 20, 10]
@@ -128,7 +128,7 @@ class TestLineString(AbstractNCSGTest):
         self.assertEqual(len(coll.cindex[0]), 8)
         self.assertEqual(len(coll.x), 7)
 
-    def test_loads_linestring_2d(self):
+    def test_to_shapely_linestring_2d(self):
         cindex = [0, 1, 2]
         x = [30, 10, 40]
         y = [10, 30, 40]
@@ -137,7 +137,7 @@ class TestLineString(AbstractNCSGTest):
         desired = wkt.loads(self.fixture_wkt['2d']['linestring'])
         self.assertEqual(ls, desired)
 
-    def test_loads_linestring_3d(self):
+    def test_to_shapely_linestring_3d(self):
         cindex = [0, 1, 2]
         x = [30, 10, 40]
         y = [10, 30, 40]
@@ -147,7 +147,7 @@ class TestLineString(AbstractNCSGTest):
         desired = wkt.loads(self.fixture_wkt['3d']['linestring'])
         self.assertEqual(ls, desired)
 
-    def test_loads_linestring_2d_multipart(self):
+    def test_to_shapely_linestring_2d_multipart(self):
         cindex = [0, 1, 2, BreakValue.MULTIPART, 3, 4, 5, 6]
         x = [10, 20, 10, 40, 30, 40, 30]
         y = [10, 20, 40, 40, 30, 20, 10]
@@ -156,7 +156,7 @@ class TestLineString(AbstractNCSGTest):
         desired = wkt.loads(self.fixture_wkt['2d']['multilinestring'])
         self.assertEqual(mls, desired)
 
-    def test_loads_linestring_3d_multipart(self):
+    def test_to_shapely_linestring_3d_multipart(self):
         cindex = [0, 1, 2, BreakValue.MULTIPART, 3, 4, 5, 6]
         x = [10, 20, 10, 40, 30, 40, 30]
         y = [10, 20, 40, 40, 30, 20, 10]
