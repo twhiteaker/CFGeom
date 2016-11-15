@@ -23,7 +23,7 @@
 * Mimic well known text (WKT) style for encoding multipolygons with holes and multilines.
 
 ## What does the existing DSG specification do that's similar to this proposal? 
-Descrete Sampling Geometries (DSGs) handle data from one or (a collection of) `timeSeries` (point), `Trajectory`, `Profile`, `TrajectoryProfile` or `timeSeriesProfile` geometries. Measurements are from a **point** (timeSeries and Profile) or **points** along a trajectory. In this proposal we reuse the core DSG `timeSeries` type which provides support for basic time series use cases e.g., a timeSeries which is measured (or modeled) at a given point.
+Discrete Sampling Geometries (DSGs) handle data from one or (a collection of) `timeSeries` (point), `Trajectory`, `Profile`, `TrajectoryProfile` or `timeSeriesProfile` geometries. Measurements are from a **point** (timeSeries and Profile) or **points** along a trajectory. In this proposal we reuse the core DSG `timeSeries` type which provides support for basic time series use cases e.g., a timeSeries which is measured (or modeled) at a given point.
 
 ## What doesn't DSG do that we need? 
 DSGs have no system to define a geometry (point, polyline, polygon, etc) and an association with a time series that applies over that entire geometry e.g, The expected rainfall in this watershed polygon for some period of time is 10 mm. Current practice is to assign a nominal point (centroid?) or just use an ID and forgo spatial information within a NetCDF-CF file. In order to satisfy a number of environmental modeling use cases, we need a way to encode a geometry (point, line, polygon, multiLine, or multiPolygon) that is the static spatial element for which one or more timeseries can be associated to.
