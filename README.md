@@ -18,99 +18,108 @@
 
 ## Proposal
 
-* Support line and polygon geometry in netCDF-3 and enhanced netCDF-4. 
-* Define a standard that the CF timeseries feature type could use to specify spatial 'coordinates' of a timeseries variable.
-* Mimic well known text style for encoding multipolygons with holes and multilines.
+* Support line and polygon geometry in netCDF-3 with a clear path to enhanced netCDF-4. 
+* Define a standard that the CF timeSeries feature type could use to specify spatial 'coordinates' of a timeSeries variable.
+* Mimic well known text (WKT) style for encoding multipolygons with holes and multilines.
 
 ## What does the existing DSG specification do that's similar to this proposal? 
-Descrete Sampling Geometries (DSGs) handle data from one or a collection of `TimeSeries` (point), `Trajectory`, `Profile`, `TrajectoryProfile` or `TimeSeriesProfile` geometries. Measurements are from a **point** (TimeSeries and Profile) or **points** along a trajectory. In this proposal we reuse the core DSG `Timeseries` type which provides support for basic time series use cases e.g., a TimeSeries which is measured (or modeled) at a given point.
+Discrete Sampling Geometries (DSGs) handle data from one or (a collection of) `timeSeries` (point), `Trajectory`, `Profile`, `TrajectoryProfile` or `timeSeriesProfile` geometries. Measurements are from a **point** (timeSeries and Profile) or **points** along a trajectory. In this proposal we reuse the core DSG `timeSeries` type which provides support for basic time series use cases e.g., a timeSeries which is measured (or modeled) at a given point.
 
 ## What doesn't DSG do that we need? 
-DSGs have no system to define a geometry (point, polyline, polygon, etc) and an association with a time series that applies over that entire geometry e.g, The expected rainfall in this watershed polygon for some period of time is 10 mm. Current practice is to assign a nominal point (centroid?) or just use an ID and forgo spatial information within a NetCDF-CF file. In order to satisfy a number of environmental modeling use cases, we need a way to encode a geometry (point, line, polygon, multiLine, or multiPolygon) that is the static spatial element for which a one or more timeseries can be associated to.
+DSGs have no system to define a geometry (point, polyline, polygon, etc) and an association with a time series that applies over that entire geometry e.g, The expected rainfall in this watershed polygon for some period of time is 10 mm. Current practice is to assign a nominal point (centroid?) or just use an ID and forgo spatial information within a NetCDF-CF file. In order to satisfy a number of environmental modeling use cases, we need a way to encode a geometry (point, line, polygon, multiLine, or multiPolygon) that is the static spatial element for which one or more timeseries can be associated to.
 
 ## How does what we are proposing work with / build on DSGs?
-In this proposal, we intend to provide an encoding to define collections of geometries (point, line, 
-polygon, multiLine, or multiPolygon). This will interface cleanly with the information encoded in Discrete 
-Sampling Geometries, enabling DSGs and Geometries to be used in tandem to describe relevant 
-datasets.
+In this proposal, we intend to provide an encoding to define collections of geometries (point, line, polygon, multiLine, or multiPolygon). This will interface cleanly with the information encoded in Discrete Sampling Geometries, enabling DSGs and Geometries to be used in tandem to describe relevant datasets.
 
-# _should update the content below to reflect latest wiki content_
-## Data Elements and Structure
+---
 
-For discussion, the structure and attributes below should be what's needed to store a polygon as the spatial coordinates of a `timeSeries` CF `featuretype`. This is using a rectangular array for the time series data and a contiguous ragged array (indexed ragged array would be silly) for the polygon nodes. In CF 2 we would expect the ragged array notation to change to a variable length data field that uses more natural 2d indexing.
+## Proposed extension of existing DSG concepts.
 
-### Representation of WKT-style polygons using NetCDF-3.
+In NetCDF-CF 1.7, Discrete Sampling Geometries seperate dimensions and variables into two types--[instance and element](http://cfconventions.org/cf-conventions/cf-conventions.html#_collections_instances_and_elements). Instance refers to individual points, trajectories, profiles, etc. These would sometimes be referred to as features given that they are identified entities that can have associated attributes and be related to other entities. Element dimensions describe temporal or other dimensions to describe data on a per-instance basis. Here, we are extending the DSG `timeSeries` [featuretype](http://cfconventions.org/cf-conventions/cf-conventions.html#_features_and_feature_types) such that the geospatial coordinates of the instances can be multipolygon or multiline feature geometries.
 
-The important detail this new convention would require are the standard\_name "polygon x node" and "polygon y node" otherwise, the data structures all adopt from the existing CF contiguous or incomplete ragged array formats. A file holding only polygon information without a timeSeries featureType would look like:
+### Example: Representation of WKT-style polygons in a NetCDF-3 timeSeries featureType.
+
+Below is sample CDL demonstrating how polygons can be encoded in NetCDF-3 using a continuous ragged array-like encoding. There are three details to note in the example below.  
+- The attribute `contiguous_ragged_dimension` with value of a dimension in the file.  
+- The `coordinates` attribute with a value containing a space seperated sring of variable names.
+- The standard\_name `polygon x node` and `polygon y node`.  
+These three attributes form a system to fully describe collections of multipolygon feature geometries. Any variable that uses the `continuous_ragged_dimension` contains integers that indicate the last value of each of the geometries along the instance dimension. Any variable that uses the dimension referenced in the `continuous_ragged_dimension` attribute can be interpreted using the values in the variable containing the `contiguous_ragged_dimension` attribute. The variables referenced in the `geom_coordinates` attribute describe spatial coordinates of geometries. These variables can also be identified by the `standard_name`s `geometry x node` and `geometry y node`. Note that the example below also includes a mechanism to handle multipolygon features that also contain holes.
 
 ```
-netcdf example {
+netcdf multipolygon_example {
 dimensions:
-    polyNodes ;
-    polygons ;
+  node = 47 ;
+  indices = 55 ;
+  instance = 3 ;
+  time = 5 ;
+  strlen = 5 ;
 variables:
-    int crs() ;
-    double polyLat(polyNodes) ;
-        polyLat:standard_name = "polygon y node" ;
-        polyLat:grid_mapping = "crs"
-    double polyLon(polyNodes) ;
-        polyLon:standard_name = "polygon x node" ;
-        polyLon:grid_mapping = "crs"
-    int polyNodeCount(polygons) ;
-        polyNodeCount:sample_dimension = "polyNodes" ;
-    double someVariable(polygons) ;
-        someVariable:long_name = "a variable describing a single-valued attribute of a polygon"
-
+  char instance_name(instance, strlen) ;
+    instance_name:cf_role = "timeseries_id" ;
+  int coordinate_index(indices) ;
+    coordinate_index:geom_type = "multipolygon" ;
+    coordinate_index:geom_coordinates = "x y" ;
+    coordinate_index:multipart_break_value = -1 ;
+    coordinate_index:hole_break_value = -2 ;
+    coordinate_index:outer_ring_order = "anticlockwise" ;
+    coordinate_index:closure_convention = "last_node_equals_first" ;
+  int coordinate_index_stop(instance) ;
+    coordinate_index_stop:contiguous_ragged_dimension = "indices" ;
+  double x(node) ;
+    x:standard_name = "geometry x node" ;
+  double y(node) ;
+    y:standard_name = "geometry y node" ;
+  double someVariable(instance) ;
+    someVariable:long_name = "a variable describing a single-valued attribute of a polygon" ;
+  int time(time) ;
+    time:units = "days since 2000-01-01" ;
+  double someData(instance, time) ;
+    someData:coordinates = "time x y" ;
 // global attributes:
-        :Conventions = "CF-1.8" ;
+		:Conventions = "CF-1.8" ;
+    :featureType = "timeSeries" ;
+data:
+
+ instance_name =
+  "flash",
+  "bang",
+  "pow" ;
+
+ coordinate_index = 0, 1, 2, 3, 4, -2, 5, 6, 7, 8, -2, 9, 10, 11, 12, -2, 13, 
+    14, 15, 16, -1, 17, 18, 19, 20, -1, 21, 22, 23, 24, 25, 26, 27, 28, -1, 
+    29, 30, 31, 32, 33, 34, -2, 35, 36, 37, 38, 39, 40, 41, 42, -1, 43, 44, 
+    45, 46 ;
+
+ coordinate_index_stop = 30, 46, 55 ;
+
+ x = 0, 20, 20, 0, 0, 1, 10, 19, 1, 5, 7, 9, 5, 11, 13, 15, 11, 5, 9, 7, 5, 
+    11, 15, 13, 11, -40, -20, -45, -40, -20, -10, -10, -30, -45, -20, -30, 
+    -20, -20, -30, 30, 45, 10, 30, 25, 50, 30, 25 ;
+
+ y = 0, 0, 20, 20, 0, 1, 5, 1, 1, 15, 19, 15, 15, 15, 19, 15, 15, 25, 25, 29, 
+    25, 25, 25, 29, 25, -40, -45, -30, -40, -35, -30, -10, -5, -20, -35, -20, 
+    -15, -25, -20, 20, 40, 40, 20, 5, 10, 15, 5 ;
+
+ someVariable = 1, 2, 3 ;
+
+ time = 1, 2, 3, 4, 5 ;
+
+ someData =
+  1, 2, 3, 4, 5,
+  1, 2, 3, 4, 5,
+  1, 2, 3, 4, 5 ;
+}
 ```
 
-### Format overview with timeSeries featureType as context.
+### How to intrpret in code:
  
-A piece of software reading this would be expected to:  
+A piece of software reading this could:  
 1) See CF-1.8 conventions  
 2) See the timeSeries featureType  
 3) Find the timeseries\_id cf\_role  
 4) Find the coordinates  
-5) See that the coordinates have a standard\_name "polygon node" to determine that these are polygons according to this new specification.  
-6) Find the variable with sample_dimension "polyNodes" to determine the count of 'samples' (nodes) along the node dimension. (See CF 1.7 Section 9.3.3, could also use format in 9.3.2 - Incomplete multidimensional array representation.)  
+5) See that the coordinates have a standard\_name `polygon x node` and `ploygon y node` to determine that these are polygons according to this new specification.  
+6) Find the variable with geom_coordinates that point to the nodes.
+7) Find the variable with `continuous_ragged_dimension` to determine how to index into the coordinate index.
 7) Iterate over polygons, picking out geometries for each `timeSeries` using the count to pick out the required nodes.  
 
-Dimensionality:  
-1) strlen is long enough for the character array timeseries id.  
-2) polyNodes would be as long as all the nodes of all the timeseries + enough special characters to separate 'holes'.  
-3) polygons would be as long as the number of timeseries features in the file.  
-4) time is the length of the maximum length time series in the file.  
-
-```
-netcdf example {
-dimensions:
-    strlen ;
-    polyNodes ;
-    polygons ;
-    time ;
-variables:
-    int crs() ;
-    double polyLat(polyNodes) ;
-        polyLat:standard_name = "polygon y node" ;
-        polyLat:grid_mapping = "crs"
-    double polyLon(polyNodes) ;
-        polyLon:standard_name = "polygon x node" ;
-        polyLon:grid_mapping = "crs"
-    int polyNodeCount(polygons) ;
-        polyNodeCount:sample_dimension = "polyNodes" ; // Note this is backward compatible with CF1.6 but sample_dimension is problematic.
-        polyNodeCount:contiguous_ragged_dimension = "polyNodes" ; // This is a proposal for a more approriate name for sample_dimension.
-    char polygonsID(polygons, strlen) ;
-        polygonsID:cf_role = "timeseries_id" ;
-    int data(polygons, time) ;
-        data:coordinates = "time polyLat polyLon" ;
-
-// global attributes:
-        :Conventions = "CF-1.8" ;
-        :featureType = "timeSeries" ;
-```
-
-
-### Encoding of WKT multiPolygons and multiLine.
-
-... TBD ...
