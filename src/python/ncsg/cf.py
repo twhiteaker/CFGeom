@@ -362,7 +362,7 @@ def _find_coordinate_index_variables_(variables):
 
 
 def _get_nodes_(nc_cindex, nc_ds):
-    coordinates = nc_cindex.coordinates.split(' ')
+    coordinates = getattr(nc_cindex, GeneralAttributes.COORDINATES).split(' ')
     keys = ['x', 'y', 'z']
     ret = {}
     for idx, key in enumerate(keys):

@@ -11,6 +11,7 @@ class GeneralAttributes(object):
     CF_ROLE_NAME = 'cf_role'
     CF_ROLE_VALUE = 'simple_geom'
     GEOM_TYPE_NAME = 'geom_type'
+    COORDINATES = 'geom_coordinates'
 
 
 class BreakValue(object):

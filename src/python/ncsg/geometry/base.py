@@ -155,7 +155,7 @@ class CFGeometryCollection(AbstractNCSGObject):
             coordinates = [vname_x, vname_y]
             if self.z is not None:
                 coordinates.append(vname_z)
-            cindex.coordinates = ' '.join(coordinates)
+            setattr(cindex, GeneralAttributes.COORDINATES, ' '.join(coordinates))
             if self.multipart_break is not None:
                 cindex.multipart_break_value = self.multipart_break
             if 'polygon' in self.geom_type:
