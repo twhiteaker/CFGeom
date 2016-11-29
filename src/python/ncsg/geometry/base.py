@@ -109,6 +109,8 @@ class CFGeometryCollection(AbstractNCSGObject):
             ds = nc.Dataset(path_or_object, mode='w')
             should_close = True
 
+        setattr(ds, GeneralAttributes.CONVENTIONS, GeneralAttributes.CONVENTIONS_VALUE)
+
         try:
             dname_node_count = '{}{}'.format(string_id, NetcdfDimension.NODE_COUNT)
             dname_geom_count = self.cf_names['dimensions']['geometry_count']
@@ -150,12 +152,13 @@ class CFGeometryCollection(AbstractNCSGObject):
 
             cindex.cf_role = GeneralAttributes.CF_ROLE_VALUE
             cindex.geom_type = self.geom_type
-            setattr(cindex, StopEncoding.NAME, stop_encoding)
+            setattr(cindex, GeneralAttributes.GEOM_DIMENSION, dname_geom_count)
 
             coordinates = [vname_x, vname_y]
             if self.z is not None:
                 coordinates.append(vname_z)
             setattr(cindex, GeneralAttributes.COORDINATES, ' '.join(coordinates))
+            setattr(cindex, StopEncoding.NAME, stop_encoding)
             if self.multipart_break is not None:
                 cindex.multipart_break_value = self.multipart_break
             if 'polygon' in self.geom_type:
@@ -167,13 +170,16 @@ class CFGeometryCollection(AbstractNCSGObject):
 
             x = ds.createVariable(vname_x, DataType.FLOAT, dimensions=(dname_node_count,))
             x[:] = self.x
+            setattr(x, GeneralAttributes.STANDARD_NAME, GeneralAttributes.GEOM_X_NODE)
 
             y = ds.createVariable(vname_y, DataType.FLOAT, dimensions=(dname_node_count,))
             y[:] = self.y
+            setattr(y, GeneralAttributes.STANDARD_NAME, GeneralAttributes.GEOM_Y_NODE)
 
             if self.z is not None:
                 z = ds.createVariable(vname_z, DataType.FLOAT, dimensions=(dname_node_count,))
                 z[:] = self.z
+                setattr(z, GeneralAttributes.STANDARD_NAME, GeneralAttributes.GEOM_Z_NODE)
 
         finally:
             if should_close:

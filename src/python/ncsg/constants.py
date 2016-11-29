@@ -12,6 +12,13 @@ class GeneralAttributes(object):
     CF_ROLE_VALUE = 'simple_geom'
     GEOM_TYPE_NAME = 'geom_type'
     COORDINATES = 'geom_coordinates'
+    STANDARD_NAME = 'standard_name'
+    GEOM_DIMENSION = 'geom_dimension'
+    GEOM_X_NODE = 'geometry_x_node'
+    GEOM_Y_NODE = 'geometry_y_node'
+    GEOM_Z_NODE = 'geometry_z_node'
+    CONVENTIONS = 'conventions'
+    CONVENTIONS_VALUE = 'CF-1.8'
 
 
 class BreakValue(object):
