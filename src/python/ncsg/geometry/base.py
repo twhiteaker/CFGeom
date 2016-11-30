@@ -121,12 +121,12 @@ class CFGeometryCollection(AbstractNCSGObject):
 
             ds.createDimension(dname_node_count, size=len(self.x))
             if cra:
-                from ncsg.cra import ContinuousRaggedArray
+                from ncsg.cra import ContiguousRaggedArray
 
                 dname_cra_node_index = '{}{}'.format(string_id, NetcdfDimension.CRA_NODE_INDEX)
                 vname_cra_stop = '{}{}'.format(string_id, NetcdfVariable.CRA_STOP)
 
-                cra_obj = ContinuousRaggedArray.from_vlen(self.cindex, start_index=self.start_index)
+                cra_obj = ContiguousRaggedArray.from_vlen(self.cindex, start_index=self.start_index)
                 ds.createDimension(dname_geom_count, size=len(cra_obj.stops))
                 ds.createDimension(dname_cra_node_index, size=len(cra_obj.value))
                 cindex = ds.createVariable(vname_cindex, DataType.INT, dimensions=(dname_cra_node_index,))
@@ -144,7 +144,7 @@ class CFGeometryCollection(AbstractNCSGObject):
                 stop_encoding = StopEncoding.CRA
                 cindex_value = cra_obj.value
                 stops[:] = cra_obj.stops
-                stops.continuous_ragged_dimension = dname_cra_node_index
+                setattr(stops, GeneralAttributes.RAGGED_DIMENSION, dname_cra_node_index)
             else:
                 stop_encoding = StopEncoding.VLEN
                 cindex_value = self.cindex

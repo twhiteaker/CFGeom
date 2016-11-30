@@ -9,7 +9,7 @@ from shapely.geometry.polygon import orient
 from ncsg import cf
 from ncsg.cf import loads_from_netcdf
 from ncsg.constants import BreakValue, OuterRingOrder, ClosureConvention, NetcdfVariable
-from ncsg.cra import ContinuousRaggedArray
+from ncsg.cra import ContiguousRaggedArray
 from ncsg.geometry.base import CFGeometryCollection
 from ncsg.test.base import AbstractNCSGTest
 
@@ -41,20 +41,20 @@ class TestContinuousRaggedArray(AbstractNCSGTest):
     def test_as_vlen(self):
         for start_index in [0, 1]:
             value = [[1, 2, 3], [4], [5, 6, 7, 8]]
-            cra_base = ContinuousRaggedArray.from_vlen(value, start_index=start_index)
-            cra = ContinuousRaggedArray(cra_base.value, cra_base.stops, start_index=start_index)
+            cra_base = ContiguousRaggedArray.from_vlen(value, start_index=start_index)
+            cra = ContiguousRaggedArray(cra_base.value, cra_base.stops, start_index=start_index)
             self.assertEqual(cra.as_vlen(), value)
 
     def test_from_vlen(self):
         value = [[1, 2, 3], [4], [5, 6, 7, 8]]
-        cra = ContinuousRaggedArray.from_vlen(value)
+        cra = ContiguousRaggedArray.from_vlen(value)
         desired = []
         for ii in value:
             desired += ii
         self.assertEqual(cra.value, desired)
         self.assertEqual(cra.stops, [2, 3, 7])
 
-        cra = ContinuousRaggedArray.from_vlen(value, start_index=1)
+        cra = ContiguousRaggedArray.from_vlen(value, start_index=1)
         self.assertEqual(cra.stops, [3, 4, 8])
 
 

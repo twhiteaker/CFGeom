@@ -19,6 +19,7 @@ class GeneralAttributes(object):
     GEOM_Z_NODE = 'geometry_z_node'
     CONVENTIONS = 'conventions'
     CONVENTIONS_VALUE = 'CF-1.8'
+    RAGGED_DIMENSION = 'contiguous_ragged_dimension'
 
 
 class BreakValue(object):
