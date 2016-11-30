@@ -59,6 +59,8 @@ variables:
   int coordinate_index(indices) ;
     coordinate_index:geom_type = "multipolygon" ;
     coordinate_index:geom_coordinates = "x y" ;
+    coordinate_index:geom_dimension = "instance" ;
+    coordinate_index:stop_encoding = "cra"
     coordinate_index:multipart_break_value = -1 ;
     coordinate_index:hole_break_value = -2 ;
     coordinate_index:outer_ring_order = "anticlockwise" ;
@@ -75,9 +77,10 @@ variables:
     time:units = "days since 2000-01-01" ;
   double someData(instance, time) ;
     someData:coordinates = "time x y" ;
+    someData:featureType = "timeSeries" ;
 // global attributes:
-		:Conventions = "CF-1.8" ;
-    :featureType = "timeSeries" ;
+    :Conventions = "CF-1.8" ;
+    
 data:
 
  instance_name =
@@ -111,15 +114,22 @@ data:
 }
 ```
 
-### How to intrpret in code:
+### How to interpret:
  
-A piece of software reading this could:  
+Starting from the time series variables:
 1) See CF-1.8 conventions  
-2) See the timeSeries featureType  
-3) Find the timeseries\_id cf\_role  
-4) Find the coordinates  
-5) See that the coordinates have a standard\_name `polygon x node` and `ploygon y node` to determine that these are polygons according to this new specification.  
-6) Find the variable with geom_coordinates that point to the nodes.
-7) Find the variable with `continuous_ragged_dimension` to determine how to index into the coordinate index.
-7) Iterate over polygons, picking out geometries for each `timeSeries` using the count to pick out the required nodes.  
+2) See the `timeSeries` featureType  
+3) Find the `timeseries_id` `cf_role`  
+4) Find the `coordinates` attribute of data variables. 
+5) See that the variables indicated by the `coordinates` attribute have a `standard_name` `polygon x node` and `ploygon y node` to determine that these are polygons according to this new specification.  
+6) Find the coordinate index variable with `geom_coordinates` that point to the nodes and see that its `stop_encoding` is `cra`
+7) Find the variable with `contiguous_ragged_dimension` pointing to the dimension of the coordinate index variable to determine how to index into the coordinate index.
+7) Iterate over polygons, parsing out geometries using the contiguous ragged stop variable and coordinate index variable to interpret the coordinate data variables. 
 
+Or, without reference to the timeseries:
+1) See CF-1.8 conventions  
+2) See the `geom_type` of `multipolygon`  
+3) See the `stop_encoding` of `cra`  
+4) Find the variable with a `contiguous_ragged_dimension` matching the coordinate index variable's dimension.  
+5) See the `geom_coordinates` of `x y`  
+6) Using the contiguous ragged stop variable found in 4 and the coordinate index variable found in 2, geometries can be parsed out of the coordinate index variable and parsed using the hole and break values in it.
