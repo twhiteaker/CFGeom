@@ -68,9 +68,9 @@ variables:
   int coordinate_index_stop(instance) ;
     coordinate_index_stop:contiguous_ragged_dimension = "indices" ;
   double x(node) ;
-    x:standard_name = "geometry x node" ;
+    x:standard_name = "geometry_x_node" ;
   double y(node) ;
-    y:standard_name = "geometry y node" ;
+    y:standard_name = "geometry_y_node" ;
   double someVariable(instance) ;
     someVariable:long_name = "a variable describing a single-valued attribute of a polygon" ;
   int time(time) ;
@@ -121,7 +121,7 @@ Starting from the time series variables:
 2) See the `timeSeries` featureType  
 3) Find the `timeseries_id` `cf_role`  
 4) Find the `coordinates` attribute of data variables. 
-5) See that the variables indicated by the `coordinates` attribute have a `standard_name` `polygon x node` and `ploygon y node` to determine that these are polygons according to this new specification.  
+5) See that the variables indicated by the `coordinates` attribute have a `standard_name` `geometry_x_node` and `geometry_y_node` to determine that these are polygons according to this new specification.  
 6) Find the coordinate index variable with `geom_coordinates` that point to the nodes and see that its `stop_encoding` is `cra`
 7) Find the variable with `contiguous_ragged_dimension` pointing to the dimension of the coordinate index variable to determine how to index into the coordinate index.
 7) Iterate over polygons, parsing out geometries using the contiguous ragged stop variable and coordinate index variable to interpret the coordinate data variables. 
