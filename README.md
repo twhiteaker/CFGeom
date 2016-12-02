@@ -117,19 +117,21 @@ data:
 ### How to interpret:
  
 Starting from the time series variables:
+
 1) See CF-1.8 conventions  
 2) See the `timeSeries` featureType  
 3) Find the `timeseries_id` `cf_role`  
-4) Find the `coordinates` attribute of data variables. 
-5) See that the variables indicated by the `coordinates` attribute have a `standard_name` `geometry_x_node` and `geometry_y_node` to determine that these are polygons according to this new specification.  
+4) Find the `coordinates` attribute of data variables
+5) See that the variables indicated by the `coordinates` attribute have a `standard_name` `geometry_x_node` and `geometry_y_node` to determine that these are polygons according to this new specification 
 6) Find the coordinate index variable with `geom_coordinates` that point to the nodes and see that its `stop_encoding` is `cra`
-7) Find the variable with `contiguous_ragged_dimension` pointing to the dimension of the coordinate index variable to determine how to index into the coordinate index.
-7) Iterate over polygons, parsing out geometries using the contiguous ragged stop variable and coordinate index variable to interpret the coordinate data variables. 
+7) Find the variable with `contiguous_ragged_dimension` pointing to the dimension of the coordinate index variable to determine how to index into the coordinate index
+8) Iterate over polygons, parsing out geometries using the contiguous ragged stop variable and coordinate index variable to interpret the coordinate data variables
 
 Or, without reference to the timeseries:
+
 1) See CF-1.8 conventions  
 2) See the `geom_type` of `multipolygon`  
 3) See the `stop_encoding` of `cra`  
-4) Find the variable with a `contiguous_ragged_dimension` matching the coordinate index variable's dimension.  
+4) Find the variable with a `contiguous_ragged_dimension` matching the coordinate index variable's dimension
 5) See the `geom_coordinates` of `x y`  
-6) Using the contiguous ragged stop variable found in 4 and the coordinate index variable found in 2, geometries can be parsed out of the coordinate index variable and parsed using the hole and break values in it.
+6) Using the contiguous ragged stop variable found in 4 and the coordinate index variable found in 2, geometries can be parsed out of the coordinate index variable and parsed using the hole and break values in it
