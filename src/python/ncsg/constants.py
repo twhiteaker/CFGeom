@@ -9,7 +9,7 @@ NCSG_GEOM_OBJECT_MAP = {'point': {'single': Point, 'multi': MultiPoint},
 
 class GeneralAttributes(object):
     CF_ROLE_NAME = 'cf_role'
-    CF_ROLE_VALUE = 'simple_geom'
+    CF_ROLE_VALUE_GEOMETRY_VARIABLE = 'simple_geom'
     GEOM_TYPE_NAME = 'geom_type'
     COORDINATES = 'geom_coordinates'
     STANDARD_NAME = 'standard_name'

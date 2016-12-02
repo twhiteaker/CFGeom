@@ -150,7 +150,7 @@ class CFGeometryCollection(AbstractNCSGObject):
                 cindex_value = self.cindex
             cindex[:] = cindex_value
 
-            cindex.cf_role = GeneralAttributes.CF_ROLE_VALUE
+            cindex.cf_role = GeneralAttributes.CF_ROLE_VALUE_GEOMETRY_VARIABLE
             cindex.geom_type = self.geom_type
             setattr(cindex, GeneralAttributes.GEOM_DIMENSION, dname_geom_count)
 
@@ -170,16 +170,16 @@ class CFGeometryCollection(AbstractNCSGObject):
 
             x = ds.createVariable(vname_x, DataType.FLOAT, dimensions=(dname_node_count,))
             x[:] = self.x
-            setattr(x, GeneralAttributes.STANDARD_NAME, GeneralAttributes.GEOM_X_NODE)
+            setattr(x, GeneralAttributes.CF_ROLE_NAME, GeneralAttributes.GEOM_X_NODE)
 
             y = ds.createVariable(vname_y, DataType.FLOAT, dimensions=(dname_node_count,))
             y[:] = self.y
-            setattr(y, GeneralAttributes.STANDARD_NAME, GeneralAttributes.GEOM_Y_NODE)
+            setattr(y, GeneralAttributes.CF_ROLE_NAME, GeneralAttributes.GEOM_Y_NODE)
 
             if self.z is not None:
                 z = ds.createVariable(vname_z, DataType.FLOAT, dimensions=(dname_node_count,))
                 z[:] = self.z
-                setattr(z, GeneralAttributes.STANDARD_NAME, GeneralAttributes.GEOM_Z_NODE)
+                setattr(z, GeneralAttributes.CF_ROLE_NAME, GeneralAttributes.GEOM_Z_NODE)
 
         finally:
             if should_close:

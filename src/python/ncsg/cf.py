@@ -356,7 +356,7 @@ def loads_from_netcdf(path_or_object, target=None):
 def _find_coordinate_index_variables_(variables):
     ret = []
     for var in variables:
-        if 'cf_role' in var.ncattrs() and var.cf_role == GeneralAttributes.CF_ROLE_VALUE:
+        if 'cf_role' in var.ncattrs() and var.cf_role == GeneralAttributes.CF_ROLE_VALUE_GEOMETRY_VARIABLE:
             ret.append(var.name)
     return ret
 
