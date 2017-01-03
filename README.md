@@ -41,9 +41,9 @@ In NetCDF-CF 1.7, Discrete Sampling Geometries seperate dimensions and variables
 
 Below is sample CDL demonstrating how polygons can be encoded in NetCDF-3 using a continuous ragged array-like encoding. There are three details to note in the example below.  
 - The attribute `contiguous_ragged_dimension` with value of a dimension in the file.  
-- The `coordinates` attribute with a value containing a space seperated sring of variable names.
-- The standard\_name `polygon x node` and `polygon y node`.  
-These three attributes form a system to fully describe collections of multipolygon feature geometries. Any variable that uses the `continuous_ragged_dimension` contains integers that indicate the last value of each of the geometries along the instance dimension. Any variable that uses the dimension referenced in the `continuous_ragged_dimension` attribute can be interpreted using the values in the variable containing the `contiguous_ragged_dimension` attribute. The variables referenced in the `geom_coordinates` attribute describe spatial coordinates of geometries. These variables can also be identified by the `standard_name`s `geometry x node` and `geometry y node`. Note that the example below also includes a mechanism to handle multipolygon features that also contain holes.
+- The `geom_coordinates` attribute with a value containing a space seperated string of variable names.
+- The cf_role `geometry_x_node` and `geometry_y_node`.  
+These three attributes form a system to fully describe collections of multipolygon feature geometries. Any variable that has the `continuous_ragged_dimension` attribute contains integers that indicate the 0-indexed starting position of each geometry along the instance dimension. Any variable that uses the dimension referenced in the `continuous_ragged_dimension` attribute can be interpreted using the values in the variable containing the `contiguous_ragged_dimension` attribute. The variables referenced in the `geom_coordinates` attribute describe spatial coordinates of geometries. These variables can also be identified by the `cf_role`s `geometry_x_node` and `geometry_y_node`. Note that the example below also includes a mechanism to handle multipolygon features that also contain holes.
 
 ```
 netcdf multipolygon_example {
@@ -59,18 +59,21 @@ variables:
   int coordinate_index(indices) ;
     coordinate_index:geom_type = "multipolygon" ;
     coordinate_index:geom_coordinates = "x y" ;
-    coordinate_index:geom_dimension = "instance" ;
-    coordinate_index:stop_encoding = "cra"
     coordinate_index:multipart_break_value = -1 ;
     coordinate_index:hole_break_value = -2 ;
     coordinate_index:outer_ring_order = "anticlockwise" ;
     coordinate_index:closure_convention = "last_node_equals_first" ;
-  int coordinate_index_stop(instance) ;
-    coordinate_index_stop:contiguous_ragged_dimension = "indices" ;
+  int coordinate_index_start(instance) ;
+    coordinate_index_start:long_name = "index of first coordinate in each instance geometry" ;
+    coordinate_index_start:contiguous_ragged_dimension = "indices" ;
   double x(node) ;
-    x:standard_name = "geometry_x_node" ;
+    x:units = "degrees_east" ;
+    x:standard_name = "longitude" ; // or projection_x_coordinate
+    X:cf_role = "geometry_x_node" ;
   double y(node) ;
-    y:standard_name = "geometry_y_node" ;
+    y:units = "degrees_north" ;
+    y:standard_name = “latitude” ; // or projection_y_coordinate
+    y:cf_role = "geometry_y_node"
   double someVariable(instance) ;
     someVariable:long_name = "a variable describing a single-valued attribute of a polygon" ;
   int time(time) ;
@@ -88,20 +91,19 @@ data:
   "bang",
   "pow" ;
 
- coordinate_index = 0, 1, 2, 3, 4, -2, 5, 6, 7, 8, -2, 9, 10, 11, 12, -2, 13, 
-    14, 15, 16, -1, 17, 18, 19, 20, -1, 21, 22, 23, 24, 25, 26, 27, 28, -1, 
-    29, 30, 31, 32, 33, 34, -2, 35, 36, 37, 38, 39, 40, 41, 42, -1, 43, 44, 
-    45, 46 ;
+ coordinate_index = 0, 1, 2, 3, 4, -2, 5, 6, 7, 8, -2, 9, 10, 11, 12, -2, 13, 14, 15, 16,
+    -1, 17, 18, 19, 20, -1, 21, 22, 23, 24, 25, 26, 27, 28, -1, 29, 30, 31, 32, 33,
+    34, -2, 35, 36, 37, 38, 39, 40, 41, 42, -1, 43, 44, 45, 46 ;
 
- coordinate_index_stop = 30, 46, 55 ;
+ coordinate_index_start = 0, 30, 46 ;
 
- x = 0, 20, 20, 0, 0, 1, 10, 19, 1, 5, 7, 9, 5, 11, 13, 15, 11, 5, 9, 7, 5, 
-    11, 15, 13, 11, -40, -20, -45, -40, -20, -10, -10, -30, -45, -20, -30, 
-    -20, -20, -30, 30, 45, 10, 30, 25, 50, 30, 25 ;
+ x = 0, 20, 20, 0, 0, 1, 10, 19, 1, 5, 7, 9, 5, 11, 13, 15, 11, 5, 9, 7,
+    5, 11, 15, 13, 11, -40, -20, -45, -40, -20, -10, -10, -30, -45, -20, -30, -20, -20, -30, 30, 
+    45, 10, 30, 25, 50, 30, 25 ;
 
  y = 0, 0, 20, 20, 0, 1, 5, 1, 1, 15, 19, 15, 15, 15, 19, 15, 15, 25, 25, 29, 
-    25, 25, 25, 29, 25, -40, -45, -30, -40, -35, -30, -10, -5, -20, -35, -20, 
-    -15, -25, -20, 20, 40, 40, 20, 5, 10, 15, 5 ;
+    25, 25, 25, 29, 25, -40, -45, -30, -40, -35, -30, -10, -5, -20, -35, -20, -15, -25, -20, 20,
+    40, 40, 20, 5, 10, 15, 5 ;
 
  someVariable = 1, 2, 3 ;
 
@@ -122,16 +124,15 @@ Starting from the time series variables:
 2) See the `timeSeries` featureType  
 3) Find the `timeseries_id` `cf_role`  
 4) Find the `coordinates` attribute of data variables  
-5) See that the variables indicated by the `coordinates` attribute have a `standard_name` `geometry_x_node` and `geometry_y_node` to determine that these are polygons according to this new specification  
-6) Find the coordinate index variable with `geom_coordinates` that point to the nodes and see that its `stop_encoding` is `cra` 
+5) See that the variables indicated by the `coordinates` attribute have a `cf_role` `geometry_x_node` and `geometry_y_node` to determine that these are geometries according to this new specification  
+6) Find the coordinate index variable with `geom_coordinates` that point to the nodes  
 7) Find the variable with `contiguous_ragged_dimension` pointing to the dimension of the coordinate index variable to determine how to index into the coordinate index  
-8) Iterate over polygons, parsing out geometries using the contiguous ragged stop variable and coordinate index variable to interpret the coordinate data variables
+8) Iterate over polygons, parsing out geometries using the contiguous ragged start variable and coordinate index variable to interpret the coordinate data variables
 
 Or, without reference to the timeseries:
 
 1) See CF-1.8 conventions  
 2) See the `geom_type` of `multipolygon`  
-3) See the `stop_encoding` of `cra`  
-4) Find the variable with a `contiguous_ragged_dimension` matching the coordinate index variable's dimension  
-5) See the `geom_coordinates` of `x y`  
-6) Using the contiguous ragged stop variable found in 4 and the coordinate index variable found in 2, geometries can be parsed out of the coordinate index variable and parsed using the hole and break values in it
+3) Find the variable with a `contiguous_ragged_dimension` matching the coordinate index variable's dimension  
+4) See the `geom_coordinates` of `x y`  
+5) Using the contiguous ragged start variable found in 3 and the coordinate index variable found in 2, geometries can be parsed out of the coordinate index variable and parsed using the hole and break values in it
