@@ -109,6 +109,8 @@ class CFGeometryCollection(AbstractNCSGObject):
             ds = nc.Dataset(path_or_object, mode='w')
             should_close = True
 
+        setattr(ds, GeneralAttributes.CONVENTIONS, GeneralAttributes.CONVENTIONS_VALUE)
+
         try:
             dname_node_count = '{}{}'.format(string_id, NetcdfDimension.NODE_COUNT)
             dname_geom_count = self.cf_names['dimensions']['geometry_count']
@@ -119,12 +121,12 @@ class CFGeometryCollection(AbstractNCSGObject):
 
             ds.createDimension(dname_node_count, size=len(self.x))
             if cra:
-                from ncsg.cra import ContinuousRaggedArray
+                from ncsg.cra import ContiguousRaggedArray
 
                 dname_cra_node_index = '{}{}'.format(string_id, NetcdfDimension.CRA_NODE_INDEX)
                 vname_cra_stop = '{}{}'.format(string_id, NetcdfVariable.CRA_STOP)
 
-                cra_obj = ContinuousRaggedArray.from_vlen(self.cindex, start_index=self.start_index)
+                cra_obj = ContiguousRaggedArray.from_vlen(self.cindex, start_index=self.start_index)
                 ds.createDimension(dname_geom_count, size=len(cra_obj.stops))
                 ds.createDimension(dname_cra_node_index, size=len(cra_obj.value))
                 cindex = ds.createVariable(vname_cindex, DataType.INT, dimensions=(dname_cra_node_index,))
@@ -142,20 +144,21 @@ class CFGeometryCollection(AbstractNCSGObject):
                 stop_encoding = StopEncoding.CRA
                 cindex_value = cra_obj.value
                 stops[:] = cra_obj.stops
-                stops.continuous_ragged_dimension = dname_cra_node_index
+                setattr(stops, GeneralAttributes.RAGGED_DIMENSION, dname_cra_node_index)
             else:
                 stop_encoding = StopEncoding.VLEN
                 cindex_value = self.cindex
             cindex[:] = cindex_value
 
-            cindex.cf_role = GeneralAttributes.CF_ROLE_VALUE
+            cindex.cf_role = GeneralAttributes.CF_ROLE_VALUE_GEOMETRY_VARIABLE
             cindex.geom_type = self.geom_type
-            setattr(cindex, StopEncoding.NAME, stop_encoding)
+            setattr(cindex, GeneralAttributes.GEOM_DIMENSION, dname_geom_count)
 
             coordinates = [vname_x, vname_y]
             if self.z is not None:
                 coordinates.append(vname_z)
-            cindex.coordinates = ' '.join(coordinates)
+            setattr(cindex, GeneralAttributes.COORDINATES, ' '.join(coordinates))
+            setattr(cindex, StopEncoding.NAME, stop_encoding)
             if self.multipart_break is not None:
                 cindex.multipart_break_value = self.multipart_break
             if 'polygon' in self.geom_type:
@@ -167,13 +170,16 @@ class CFGeometryCollection(AbstractNCSGObject):
 
             x = ds.createVariable(vname_x, DataType.FLOAT, dimensions=(dname_node_count,))
             x[:] = self.x
+            setattr(x, GeneralAttributes.CF_ROLE_NAME, GeneralAttributes.GEOM_X_NODE)
 
             y = ds.createVariable(vname_y, DataType.FLOAT, dimensions=(dname_node_count,))
             y[:] = self.y
+            setattr(y, GeneralAttributes.CF_ROLE_NAME, GeneralAttributes.GEOM_Y_NODE)
 
             if self.z is not None:
                 z = ds.createVariable(vname_z, DataType.FLOAT, dimensions=(dname_node_count,))
                 z[:] = self.z
+                setattr(z, GeneralAttributes.CF_ROLE_NAME, GeneralAttributes.GEOM_Z_NODE)
 
         finally:
             if should_close:

@@ -9,8 +9,17 @@ NCSG_GEOM_OBJECT_MAP = {'point': {'single': Point, 'multi': MultiPoint},
 
 class GeneralAttributes(object):
     CF_ROLE_NAME = 'cf_role'
-    CF_ROLE_VALUE = 'simple_geom'
+    CF_ROLE_VALUE_GEOMETRY_VARIABLE = 'simple_geom'
     GEOM_TYPE_NAME = 'geom_type'
+    COORDINATES = 'geom_coordinates'
+    STANDARD_NAME = 'standard_name'
+    GEOM_DIMENSION = 'geom_dimension'
+    GEOM_X_NODE = 'geometry_x_node'
+    GEOM_Y_NODE = 'geometry_y_node'
+    GEOM_Z_NODE = 'geometry_z_node'
+    CONVENTIONS = 'conventions'
+    CONVENTIONS_VALUE = 'CF-1.8'
+    RAGGED_DIMENSION = 'contiguous_ragged_dimension'
 
 
 class BreakValue(object):

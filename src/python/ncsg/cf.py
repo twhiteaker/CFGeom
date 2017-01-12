@@ -356,13 +356,13 @@ def loads_from_netcdf(path_or_object, target=None):
 def _find_coordinate_index_variables_(variables):
     ret = []
     for var in variables:
-        if 'cf_role' in var.ncattrs() and var.cf_role == GeneralAttributes.CF_ROLE_VALUE:
+        if 'cf_role' in var.ncattrs() and var.cf_role == GeneralAttributes.CF_ROLE_VALUE_GEOMETRY_VARIABLE:
             ret.append(var.name)
     return ret
 
 
 def _get_nodes_(nc_cindex, nc_ds):
-    coordinates = nc_cindex.coordinates.split(' ')
+    coordinates = getattr(nc_cindex, GeneralAttributes.COORDINATES).split(' ')
     keys = ['x', 'y', 'z']
     ret = {}
     for idx, key in enumerate(keys):

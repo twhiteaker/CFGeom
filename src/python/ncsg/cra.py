@@ -3,7 +3,7 @@ import numpy as np
 from ncsg.base import AbstractNCSGObject
 
 
-class ContinuousRaggedArray(AbstractNCSGObject):
+class ContiguousRaggedArray(AbstractNCSGObject):
     # TODO: Docstring and commenting
 
     def __init__(self, value, stops, start_index=0):
@@ -41,4 +41,4 @@ class ContinuousRaggedArray(AbstractNCSGObject):
         stops = np.array(stops)
         stops += start_index
         stops = stops.tolist()
-        return ContinuousRaggedArray(new_value, stops, start_index=start_index)
+        return ContiguousRaggedArray(new_value, stops, start_index=start_index)
