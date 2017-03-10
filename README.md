@@ -217,10 +217,10 @@ Starting from the time series featureType:
 4) Find the `coordinates` attribute of element variables for the instance dimension  
 5) See the `cell_bounds` attribute of the auxiliary coordinate variable
 6) See the `geom_type` in the variable referenced by `cell_bounds`
-8) Iterate over geometries found in the `node_coordinates` variable. Geometries found using the the `node_count` variable Geometry parts found using the `part_node_count` and `part_type` variables.
+8) Iterate over geometries found in the `node_coordinates` variable. Geometries found using the `node_count` variable. Geometry parts found using the `part_node_count` and `part_type` variables.
 
 Or, without reference to the timeseries:
 
 1) See CF-1.8 conventions  
 2) See the `geom_type` of `multipolygon`
-3) Iterate over geometries found in the `node_coordinates` variable. Geometries found using the the `node_count` variable Geometry parts found using the `part_node_count` and `part_type` variables.
+3) Iterate over geometries found in the `node_coordinates` variable. Geometries found using the `node_count` variable. Geometry parts found using the `part_node_count` and `part_type` variables.
