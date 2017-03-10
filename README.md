@@ -7,8 +7,8 @@
 ## Scope
 
 * Extends existing CF capabilities in CF 1.7 to include _geometries_ of types multi-point, line, multi-line,  polygon, and multi-polygon.
-* Limited to linear between nodes in the coordinate reference system the nodes are defined in. May support parametric or otherwise curved veatures in the future.
-* Uses the cell\_bounds concept to allow geometries to be attached to a Discrete Sampling Geometry _instance_ variable or can be used alone to store geometry.
+* Limited to linear connections between nodes in the coordinate reference system the nodes are defined in. May support parametric or otherwise curved features in the future.
+* Uses the `cell_bounds` concept to allow geometries to be attached to a Discrete Sampling Geometry _instance_ variable or can be used alone to store geometry.
 
 ## Use Cases
 
@@ -22,7 +22,9 @@
 * Support well known text (WKT) style for encoding multipolygons with holes and multilines while following existing NetCDF-CF implementation patterns as much as possible.
 
 ## What does the existing specification do that's similar to this proposal? 
-For any coordinate variable, `cell_bounds` can be defined to describe the boundaries of the region (typically in space-time) meant to be represented by the variable. This capability, described in section 7.1, supports three types of `cell_bounds`: 1-d bounds such as a time period, 2-d bounds such as the bounding rectangle of a cell in a 2-d grid, and n-d bounds to describe a cell with more than four edges. For example, say you had a 2-d grid of cells that do not lie on an orthoganal grid and, thus, have curved cell edges. If these cells are to be represented using lat/lon `cell_bounds` with many nodes are required. In this case, a `lat_bnds` and `lon_bnds` variable will have `p` vertices, where p is the number needed to adequately represent the curvature of the cells. Extending Example 7.2 in the NetCDF-CF 1.7 specification, and assuming 10 vertices per edge plus corners are needed, this would look like:
+For any coordinate variable, `cell_bounds` can be defined to describe the boundaries of the region (typically in space-time) meant to be represented by the variable. This capability, described in [section 7.1](http://cfconventions.org/cf-conventions/cf-conventions.html#cell-boundaries), supports three types of `cell_bounds`: 1-d bounds such as a time period, 2-d bounds such as the bounding rectangle of a cell in a 2-d grid, and n-d bounds to describe a cell with more than four edges.  
+For example, given 2-d grid of cells that do not lie on an orthoganal grid and consequently have curved cell edges. If these cells are to be represented acurately using lat/lon `cell_bounds` many nodes are required to describe their cuvature. In this case, a `lat_bnds` and `lon_bnds` variable will have `p` vertices, where p is the number needed to adequately represent the curvature of the cells.  
+Extending Example 7.2 in the NetCDF-CF 1.7 specification, and assuming 10 vertices per edge plus corners are needed, this would look like:
 
 ```
 dimensions:
@@ -42,12 +44,15 @@ variables:
   float lon_bnds(jmax,imax,nv);
 ```
 
-With regards to time series, Discrete Sampling Geometries (DSGs) handle data from one or (a collection of) `timeSeries` (point), `Trajectory`, `Profile`, `TrajectoryProfile` or `timeSeriesProfile` geometries. Measurements are from a **point** (timeSeries and Profile) or **points** along a trajectory. In this proposal we reuse the core DSG `point` and `timeSeries` type which provides support for basic time series use cases e.g., a timeSeries which is measured (or modeled).
+With regards to time series, Discrete Sampling Geometries (DSGs) handle data from one or (a collection of) `timeSeries` (point), `Trajectory`, `Profile`, `TrajectoryProfile` or `timeSeriesProfile` geometries. Measurements are from a **point** (timeSeries and Profile) or **points** along a trajectory. This proposal builds on the core DSG `point` and `timeSeries` type which provides support for basic time series use cases e.g., a timeSeries which is measured (or modeled).
 
 ## What doesn't the existing specification do that we need? 
-From the perspective of time series associated with polygons, DSGs have no system to define a geometry (point, polyline, polygon, etc) and an association with a time series that applies over that entire geometry e.g, The expected rainfall in this watershed polygon for some period of time is 10 mm. Current practice is to assign a nominal point (centroid?) or just use an ID and forgo spatial information within a NetCDF-CF file. In order to satisfy a number of environmental modeling use cases, we need a way to encode a geometry (point, line, polygon, multiLine, or multiPolygon) that is the static spatial element for which one or more timeseries can be associated to.
+From the perspective of time series associated with polygons, DSGs have no system to define a geometry (multi-point, polyline, polygon, etc) and an association with a time series that applies over that entire geometry.  
+> e.g, The expected rainfall in this watershed polygon for some period of time is 10 mm.  
 
-The current n-d `cell_bounds` mechanism is limited in that every cell must have the same number of verticies. In order to support geometries more generally, and additional type of `cell_bounds` are needed. Typically, these geometries will each have drastically different numbers of nodes and may have multiple parts and/or holes. This requirement is not supported by the existing n-d `cell_bounds` but conceptually, a geometry can be associated with a cell the same as an n-d geometry, albeit with some additional metadata and data.
+Current practice has been to assign a nominal point (centroid or some other location) or just use an ID and forgo spatial information within a NetCDF-CF file. In order to satisfy a number of environmental modeling use cases, a way to encode a geometry (multi-point, line, polygon, multiLine, or multiPolygon) that is the static spatial element for which one or more timeseries can be associated.
+
+The current n-d `cell_bounds` mechanism is limited in that every cell must have the same number of verticies. In order to support geometries more generally an additional type of `cell_bounds` are needed. Typically, these geometries will each have drastically different numbers of nodes and may have multiple parts and/or holes. This requirement is not supported by the existing n-d `cell_bounds` but conceptually, a geometry can be associated with a cell the same as an n-d geometry, albeit with some additional metadata and data.
 
 ## How does what we are proposing work with / build on the current specification?
 In this proposal, we intend to provide an encoding to define collections of geometries (point, line, polygon, multiLine, or multiPolygon). It is specified as a new type of `cell_bounds` that can be attached to any spatial coordinate variable allowing description of a geometry representation of a cell or entity. This will interface cleanly with the information encoded in Discrete Sampling Geometries, enabling DSGs and Geometries to be used in tandem to describe relevant datasets. Because this proposal builds on the concept of `cell_bounds`, it is also applicable to other use cases where normal n-d `cell_bounds` are not sufficient.
@@ -134,13 +139,13 @@ variables:
  double lat(instance) ;
    lat:units = "degrees_north" ;
    lat:standard_name = "latitude" ;
-   lat:cell_bounds = "sf"
+   lat:cell_bounds = "sf" ;
  double lon(instance) ;
    lon:units = "degrees_east" ;
    lon:standard_name = "longitude" ;
-   lon:cell_bounds = "sf"
+   lon:cell_bounds = "sf" ;
   int crs ;
-    crs:grid_mapping_name = "latitude_longitude";
+    crs:grid_mapping_name = "latitude_longitude" ;
     crs:longitude_of_prime_meridian = 0.0 ;
     crs:semi_major_axis = 6378137.0 ;
     crs:inverse_flattening = 298.257223563 ;
@@ -159,8 +164,8 @@ variables:
    x:cf_role = "geometry_x_node" ;
  double y(node) ;
    y:units = "degrees_north" ;
-   y:standard_name = “latitude” ; // or projection_y_coordinate
-   y:cf_role = "geometry_y_node"
+   y:standard_name = "latitude" ; // or projection_y_coordinate
+   y:cf_role = "geometry_y_node" ;
  double someVariable(instance) ;
    someVariable:long_name = "a variable describing a single-valued attribute of a polygon" ;
    someVariable:coordinates = "lat lon" ;
