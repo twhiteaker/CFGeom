@@ -87,13 +87,9 @@ variables:
     crs:longitude_of_prime_meridian = 0.0 ;
     crs:semi_major_axis = 6378137.0 ;
     crs:inverse_flattening = 298.257223563 ;
-  double someVariable(instance) ;
-    someVariable:long_name = "a variable describing a single-valued attribute of a polygon" ;
-    someVariable:coordinates = "lat lon" ;
-    someVariable:grid_mapping = "crs" ;
   double someData(instance, time) ;
     someData:coordinates = "time lat lon" ;
-    someVariable:grid_mapping = "crs" ;
+    someData:grid_mapping = "crs" ;
 // global attributes:
     :Conventions = "CF-1.6" ;
     :featureType = "timeSeries" ;
@@ -110,8 +106,6 @@ data:
  
   lon = 16, 25 ;
  
-  someVariable = 1, 2 ;
-
   someData =
     1, 2, 3, 4, 5,
     1, 2, 3, 4, 5 ;
@@ -168,13 +162,9 @@ variables:
     y:units = "degrees_north" ;
     y:standard_name = "latitude" ; // or projection_y_coordinate
     y:cf_role = "geometry_y_node" ;
-  double someVariable(instance) ;
-    someVariable:long_name = "a variable describing a single-valued attribute of a polygon" ;
-    someVariable:coordinates = "lat lon" ;
-    someVariable:grid_mapping = "crs" ;
   double someData(instance, time) ;
     someData:coordinates = "time lat lon" ;
-    someVariable:grid_mapping = "crs" ;
+    someData:grid_mapping = "crs" ;
 // global attributes:
     :Conventions = "CF-1.8" ;
     :featureType = "timeSeries" ;
@@ -191,8 +181,6 @@ data:
  
   lon = 16, 25 ;
  
-  someVariable = 1, 2 ;
-
   someData =
     1, 2, 3, 4, 5,
     1, 2, 3, 4, 5 ;
