@@ -113,8 +113,8 @@ data:
 ```
 
 Below is sample CDL demonstrating how polygons can be encoded in NetCDF-3 using a contiguous ragged array-like encoding. There are three details to note in the example below.  
-- The newly introduced `bounds` attributes on the lat and lon coordinates both pointing to the `sf` variable.  
-- The `sf` variable that contains only attributes describing the system of variables that make up the geometry collection.  
+- The newly introduced `bounds` attributes on the lat and lon coordinates both pointing to the `geometry_container` variable.  
+- The `geometry_container` variable that contains only attributes describing the system of variables that make up the geometry collection.  
 - The cf_role `geometry_x_node` and `geometry_y_node`.  
 
 Using the existing NetCDF-CF convention for auxiliary coordinate variables along with this new type of bounds, we can attach geometries for each so-called `instance` in a DSG dataset. Note that this system can also be identified via the `cf_role`s `geometry_x_node` and `geometry_y_node`. Note that the example below also includes a mechanism to handle multipolygon features that contain holes.
@@ -135,22 +135,22 @@ variables:
   double lat(instance) ;
     lat:units = "degrees_north" ;
     lat:standard_name = "latitude" ;
-    lat:bounds = "sf" ;
+    lat:bounds = "geometry_container" ;
   double lon(instance) ;
     lon:units = "degrees_east" ;
     lon:standard_name = "longitude" ;
-    lon:bounds = "sf" ;
+    lon:bounds = "geometry_container" ;
   int crs ;
     crs:grid_mapping_name = "latitude_longitude" ;
     crs:longitude_of_prime_meridian = 0.0 ;
     crs:semi_major_axis = 6378137.0 ;
     crs:inverse_flattening = 298.257223563 ;
-  int sf; // containing variable -- datatype irrelevant because no data
-    sf:geom_type = "multipolygon" ;
-    sf:node_count = "node_count"; // variable containing count of nodes per geometry -- may span multiple parts.
-    sf:part_node_count = "part_node_count" ; // variable containing count of nodes per part -- not required for single part geometry types.
-    sf:part_type = "part_type" ; // Variable indicating if parts are holes or not -- not required unless polygons with holes are present.
-    sf:node_coordinates = "x y" ; // variables containing spatial node data.
+  int geometry_container; // containing variable -- datatype irrelevant because no data
+    geometry_container:geom_type = "multipolygon" ;
+    geometry_container:node_count = "node_count"; // variable containing count of nodes per geometry -- may span multiple parts.
+    geometry_container:part_node_count = "part_node_count" ; // variable containing count of nodes per part -- not required for single part geometry types.
+    geometry_container:part_type = "part_type" ; // Variable indicating if parts are holes or not -- not required unless polygons with holes are present.
+    geometry_container:node_coordinates = "x y" ; // variables containing spatial node data.
   int node_count(instance); // count of coordinates in each instance geometry
   int part_node_count(part) ; // count of coordinates in each geometry part
   int part_type(part) ; // type of each geometry part
