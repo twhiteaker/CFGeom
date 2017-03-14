@@ -146,7 +146,7 @@ variables:
     crs:semi_major_axis = 6378137.0 ;
     crs:inverse_flattening = 298.257223563 ;
   int geometry_container; // containing variable -- datatype irrelevant because no data
-    geometry_container:geom_type = "multipolygon" ;
+    geometry_container:geometry_type = "multipolygon" ;
     geometry_container:node_count = "node_count"; // variable containing count of nodes per geometry -- may span multiple parts.
     geometry_container:part_node_count = "part_node_count" ; // variable containing count of nodes per part -- not required for single part geometry types.
     geometry_container:part_type = "part_type" ; // Variable indicating if parts are holes or not -- not required unless polygons with holes are present.
@@ -206,11 +206,11 @@ Starting from the time series featureType:
 3) Find the `timeseries_id` `cf_role`  
 4) Find the `coordinates` attribute of element variables for the instance dimension  
 5) See the `bounds` attribute of the auxiliary coordinate variable  
-6) See the `geom_type` in the variable referenced by `bounds`  
+6) See the `geometry_type` in the variable referenced by `bounds`  
 7) Iterate over geometries found in the `node_coordinates` variable. Geometries are found using the `node_count` variable. Geometry parts are found using the `part_node_count` and `part_type` variables.
 
 Or, without reference to the timeSeries:
 
 1) See CF-1.8 conventions  
-2) See the `geom_type` of `multipolygon`  
+2) See the `geometry_type` of `multipolygon`  
 3) Iterate over geometries found in the `node_coordinates` variable. Geometries are found using the `node_count` variable. Geometry parts are found using the `part_node_count` and `part_type` variables.
