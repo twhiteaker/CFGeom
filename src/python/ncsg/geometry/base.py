@@ -6,7 +6,6 @@ from abc import ABCMeta
 import netCDF4 as nc
 import numpy as np
 
-from ncsg import cf
 from ncsg.base import AbstractNCSGObject
 from ncsg.constants import NetcdfDimension, DataType, NetcdfVariable, OuterRingOrder, ClosureConvention, StopEncoding, \
     GeneralAttributes
@@ -73,6 +72,7 @@ class CFGeometryCollection(AbstractNCSGObject):
         return ret
 
     def as_shapely(self):
+        from ncsg import cf
         ret = [None] * len(self.cindex)
         for idx in range(len(self.cindex)):
             geom = cf.to_shapely(self.geom_type, self.cindex[idx], self.x, self.y, z=self.z,

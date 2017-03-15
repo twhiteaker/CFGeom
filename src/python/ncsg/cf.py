@@ -320,6 +320,7 @@ def loads_from_netcdf(path_or_object, target=None):
         ds = nc.Dataset(path_or_object)
         should_close = True
 
+    v = ds.variables['coordinate_index']
     try:
         if target is None:
             target = _find_coordinate_index_variables_(ds.variables.values())
@@ -357,7 +358,10 @@ def _find_coordinate_index_variables_(variables):
     ret = []
     for var in variables:
         if 'cf_role' in var.ncattrs() and var.cf_role == GeneralAttributes.CF_ROLE_VALUE_GEOMETRY_VARIABLE:
-            ret.append(var.name)
+            try:
+                ret.append(var.name)
+            except AttributeError:
+                ret.append(var._name)  # For older netCDF4 modules
     return ret
 
 
