@@ -20,7 +20,6 @@ class Test(AbstractNCSGTest):
                 geom = wkt.loads(wktvalue)
                 coll = cf.from_shapely(geom.geom_type, geom)
                 path = self.get_temporary_file_path('{}_{}.nc'.format(dim, geom_type))
-                print path
                 coll.write_netcdf(path)
                 loaded_coll = loads_from_netcdf(path)[0]
                 self.assertTrue(geom.almost_equals(loaded_coll.as_shapely()[0]))
@@ -138,10 +137,6 @@ class TestPolygon(AbstractNCSGTest):
                     desired = orient(geoms[0])
                 else:
                     desired = geoms[ctr]
-                print '---------'
-                print loaded
-                print '\n'
-                print desired
                 self.assertTrue(loaded.almost_equals(desired))
 
     def test_from_shapely_polygon_other(self):
@@ -198,6 +193,4 @@ class TestPolygon(AbstractNCSGTest):
 
         p = cf.to_shapely('multipolygon', geom)
         desired = wkt.loads(self.fixture_wkt['2d']['multipolygons_holes'])
-        print p
-        print desired
         self.assertEqual(p, desired)
