@@ -85,15 +85,16 @@ class CFGeometryCollection(AbstractNCSGObject):
         path = os.path.join(tempfile.gettempdir(), '_ncsg_describe_.nc')
         self.write_netcdf(path, cra=cra)
         ret = None
+        shell = os.name == 'nt'  # Use shell=True for commands on Windows
         try:
             cmd = ['ncdump']
             if header:
                 cmd.append('-h')
             cmd.append(path)
             if capture:
-                ret = str(subprocess.check_output(cmd))
+                ret = str(subprocess.check_output(cmd, shell=shell))
             else:
-                subprocess.check_call(cmd)
+                subprocess.check_call(cmd, shell=shell)
         finally:
             os.remove(path)
         return ret

@@ -1,3 +1,5 @@
+# Place in src/python folder
+
 import datetime
 import json
 from collections import OrderedDict
@@ -6,8 +8,8 @@ from shapely import wkt
 
 from ncsg import cf
 
-fixture_wkt = '/home/benkoziol/l/project/netCDF-CF-simple-geometry/data/fixture_wkt.json'
-out_file = '/tmp/create_cdl_examples.md'
+fixture_wkt = '../../data/fixture_wkt.json'
+out_file = '../../misc/tmp/create_cdl_examples.md'
 descriptions = {'point': {'msg': 'Point', 'order': 0},
                 'multipoint': {'msg': 'MultiPoint', 'order': 3},
                 'polygon': {'msg': 'Polygon', 'order': 2},
@@ -37,14 +39,14 @@ def add_section(out, wktvalue, dim):
     append(out, 'Common Data Language (CDL):'.format(wktvalue))
     append(out, '```')
     desc = coll.describe(header=False, capture=True)
-    desc = desc.split('\\n')
+    desc = desc.split('\n')
     for d in desc:
-        d = str(d.replace('\\t', '  '))
+        d = str(d.replace('\t', '  '))
         if d.startswith("b'"):
             d = d[2:]
         if d == "'":
             continue
-        append(out, d)
+        append(out, d, add_newline=False)
     append(out, '```')
 
 
@@ -61,7 +63,7 @@ with open(fixture_wkt) as f:
 
 out = []
 
-append(out, '# Examples - VLen Ragged Arrays (NetCDF4 Only)')
+append(out, '# Examples - VLEN Ragged Arrays (NetCDF4 Only)')
 append(out, 'Created {}'.format(datetime.datetime.now()))
 append(out, '')
 
@@ -74,6 +76,7 @@ for wktkey in new_desc.keys():
                 raise
             else:
                 continue
+        print dkey, wktkey
         add_section(out, wktvalue, dkey)
 
 with open(out_file, 'w') as fout:
