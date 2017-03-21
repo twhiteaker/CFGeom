@@ -14,4 +14,4 @@ class TestCFGeometryCollection(AbstractNCSGTest):
         coll.write_netcdf(path)
 
         with nc.Dataset(path) as source:
-            self.assertIn('tester_coordinate_index', source.variables)
+            self.assertIn('tester_geometry_container', source.variables)

@@ -6,295 +6,171 @@ from _pytest.assertion.util import basestring
 from shapely.geometry.base import BaseGeometry, BaseMultipartGeometry
 from shapely.geometry.polygon import orient
 
-from ncsg.constants import NCSG_GEOM_OBJECT_MAP, BreakValue, OuterRingOrder, ClosureConvention, GeneralAttributes, \
-    StopEncoding
-from ncsg.exc import NoCoordinateIndexVariablesFoundError
+from ncsg.constants import (
+    NCSG_GEOM_OBJECT_MAP,
+    RingType,
+    GeneralAttributes,
+    )
+from ncsg.exc import NoGeometryContainerVariablesFoundError
 from ncsg.geometry.base import CFGeometryCollection
 
 
-def from_shapely(geom_type, geoms, start_index=0, multipart_break=BreakValue.MULTIPART, hole_break=BreakValue.HOLE,
-                 string_id=None):
+def from_shapely(geom_type, geoms, string_id=None):
     """
     Create a CF geometry collection from a sequence of geometries.
 
     :param str geom_type: The destination geometry type. Valid values are ``"point"``,
-     ``"linestring"``, ``"polygon"``, and multipart types `"multipoint"``, ``"multilinestring"``, ``"multipolygon"``.
+     ``"line"``, ``"polygon"``, and multipart types `"multipoint"``, ``"multiline"``, ``"multipolygon"``.
     :param sequence geoms: A sequence of geometry objects to convert.
-    :param int start_index: The starting index value. The default is Python zero-based indexing. Valid values are ``0``
-     or ``1``.
-    :param int multipart_break: A break value indicating a multipart geometry split. Must be a negative integer value.
-     If ``None``, there will be no attempt to search for multipart splits.
-    :param int hole_break: A break value indicating a hole in the previous polygon. Setting to ``None`` tells the
-     function to not search for holes. Must be a negative integer value. This argument is valid only when decoding
-     polygon geometry objects. All holes (interiors) must be placed after the coordinate index sequence defining the
-     polygon's exterior.
     :return: :class:`~ncsg.CFGeometryCollection`
     """
 
-    # Only interested in lower-case geometry types.
     geom_type = geom_type.lower()
+    geom_type = geom_type.replace('string', '')  # We use line instead of linestring
 
     # Allow a singleton geometry object to be passed.
     if isinstance(geoms, BaseGeometry):
-        itr = [geoms]
-    else:
-        itr = geoms
+        geoms = [geoms]
 
-    # Holds coordinate index arrays for each geometry.
-    cindex_all = []
-    # Holds all the x coordinate values.
-    x = []
-    # Holds all the y coordinate values.
-    y = []
+    # Holds each CF geometry.
+    cf_geoms = []
     # May hold z coordinate values.
-    z = None
-    # Flag to indicate if there are z values in our geometries.
     has_z = False
-    # Track the current node index value when creating coordinate index arrays.
-    node_index = start_index
 
-    # Convert each geometry to its coordinate index representation.
-    for ctr_geom_element, geom_element in enumerate(itr):
-        # Coordinate index for the current geometry.
-        cindex = []
+    # Convert each geometry to its coordinate representation.
+    for ctr_geom, geom in enumerate(geoms):
+        # Holds geometry parts
+        cf_parts = []
         # Allows us to iterate over single-part and multi-part geometries.
-        for ctr_geom, geom in enumerate(_get_geometry_iter_(geom_element)):
-            # Determine if we have z coordinates in our geometry.
-            if ctr_geom == 0 and ctr_geom_element == 0 and geom.has_z:
-                z = []
+        for ctr_part, part in enumerate(_get_geometry_iter_(geom)):
+            cf_part = {'ring_type': RingType.OUTER}
+            if ctr_part == 0 and ctr_geom == 0 and part.has_z:
                 has_z = True
-            # Add a multi-part break value if we are on the second component of a geometry.
-            if ctr_geom > 0:
-                cindex += [multipart_break]
+
             # Get the geometry nodes' coordinates.
             if 'polygon' in geom_type:
-                exterior = geom.exterior
+                exterior = part.exterior
                 # Always orient the polygon CCW.
                 if not exterior.is_ccw:
-                    exterior = orient(geom).exterior
+                    exterior = orient(part).exterior
                 coords = np.array(exterior.coords)
             else:
-                coords = np.array(geom)
+                coords = np.array(part)
 
-            # Extend coordinate containers with additional coordinates for the geometry.
-            x_coords = _get_coordinates_as_list_(coords, 0)
-            x += x_coords
-            y += _get_coordinates_as_list_(coords, 1)
+            # Add this geometry's coordinates to coordinate containers.
+            cf_part['x'] = _get_coordinates_as_list_(coords, 0)
+            cf_part['y'] = _get_coordinates_as_list_(coords, 1)
             if has_z:
-                z += _get_coordinates_as_list_(coords, 2)
-            # Extend the coordinate index array.
-            len_x_coords = len(x_coords)
-            cindex += range(node_index, node_index + len_x_coords)
-            # Increment the node index accordingly.
-            node_index += len_x_coords
-
+                cf_part['z'] = _get_coordinates_as_list_(coords, 2)
+            else:
+                cf_part['z'] = None
+            cf_parts.append(cf_part)
+            
             # Check for polygon interiors.
             try:
                 # Add interiors/holes if the polygon objects contains them.
-                if len(geom.interiors) > 0:
-                    for ii in geom.interiors:
+                if len(part.interiors) > 0:
+                    for ii in part.interiors:
+                        cf_part = {'ring_type': RingType.INNER}
                         # Always orient holes CW.
                         if ii.is_ccw:
                             ii = orient(ii, sign=-1.0)
-                        # Add a hole to the coordinate index.
-                        cindex += [hole_break]
-                        # Convert exterior to a coordinate series and add these values to the coordinate arrays.
+                        # Add interior's coordinates to coordinate containers.
                         coords = np.array(ii)
-                        x += coords[:, 0].tolist()
-                        y += coords[:, 1].tolist()
+                        cf_part['x'] = coords[:, 0].tolist()
+                        cf_part['y'] = coords[:, 1].tolist()
                         if has_z:
-                            z += coords[:, 2].tolist()
-                        # Add coordinate indices.
-                        cindex += range(node_index, node_index + coords.shape[0])
-                        # Increment the node index.
-                        node_index += coords.shape[0]
+                            cf_part['z'] = coords[:, 2].tolist()
+                        else:
+                            cf_part['z'] = None
+                        cf_parts.append(cf_part)
             except AttributeError:
                 # If this is not a polygon, we are not worried about interiors.
                 if 'polygon' in geom_type:
                     raise
-        # Add the geometries coordinate index array to the collection of index arrays.
-        cindex_all.append(cindex)
+        cf_geoms.append(cf_parts)
 
-    if 'polygon' in geom_type:
-        outer_ring_order = OuterRingOrder.CCW
-        closure_convention = ClosureConvention.CLOSED
-    else:
-        outer_ring_order = None
-        closure_convention = None
-
-    return CFGeometryCollection(geom_type, cindex_all, x, y, z=z, start_index=start_index,
-                                multipart_break=multipart_break, hole_break=hole_break,
-                                outer_ring_order=outer_ring_order, closure_convention=closure_convention,
-                                string_id=string_id)
+    return CFGeometryCollection(geom_type, cf_geoms, string_id)
 
 
-def to_shapely(geom_type, cindex, x, y, z=None, start_index=0, multipart_break=BreakValue.MULTIPART,
-               hole_break=BreakValue.HOLE):
+def to_shapely(geom_type, cf_geom):
     """
     Load a Shapely geometry object from its CF representation.
 
-    :param geom_type: The destination geometry type. Valid values are ``"point"``, ``"linestring"``, ``"polygon"``, and
-     multipart types `"multipoint"``, ``"multilinestring"``, ``"multipolygon"``.
+    :param geom_type: The destination geometry type. Valid values are ``"point"``, ``"line"``, ``"polygon"``, and
+     multipart types `"multipoint"``, ``"multiline"``, ``"multipolygon"``.
     :type geom_type: str
-    :param cindex: A one-dimensional integer array containing indices into the coordinate arrays ``x``, ``y``, and
-     optionally ``z``. ``multipart_break`` and ``hole_break`` may be part of this coordinate sequence.
-    :type cindex: :class:`numpy.ndarray`
-    :param x: A one-dimensional array of x-coordinate values.
-    :type x: :class:`numpy.ndarray`
-    :param y: A one-dimensional array of y-coordinate values.
-    :type y: :class:`numpy.ndarray`
-    :param z: An optional one-dimensional array of z-coordinate values.
-    :type z: ``None`` or :class:`numpy.ndarray`
-    :param start_index: The starting index value. The default is Python zero-based indexing. Valid values are ``0`` or
-     ``1``.
-    :type start_index: int
-    :param int multipart_break: A break value indicating a multipart geometry split. Must be a negative integer value.
-     If ``None``, there will be no attempt to search for multipart splits.
-    :param int hole_break: A break value indicating a hole in the previous polygon. Setting to ``None`` tells the
-     function to not search for holes. Must be a negative integer value. This argument is valid only when decoding
-     polygon geometry objects. All holes (interiors) must be placed after the coordinate index sequence defining the
-     polygon's exterior.
+    :param cf_geom: A list of CF geometry parts for a single geometry. Each item in
+     the list is a dictionary with one-dimensional coordinate arrays ``x``,
+     ``y``, and optionally ``z``. and an integer ``ring_type``.
+    :type cf_geom: List
     :return: The Shapely object representing the geometry.
     :rtype: :class:`shapely.geometry.base.BaseGeometry`
     :raises: ValueError
     """
 
-    # Don't be concerned about case with the geometry type.
     geom_type = geom_type.lower()
-    # Determine the shapely geometry type.
-    shapely_type = _get_shapely_klass_(geom_type, single=True)
-    # Convert the coordinate index array to a NumPy integer array. This is the only actual NumPy array that is
-    # required.
-    cindex = np.array(cindex, dtype=int)
+    shapely_type = NCSG_GEOM_OBJECT_MAP[geom_type]
 
-    # Check the start index is reasonable (i.e. C v Fortran).
-    if start_index < 0 or start_index > 1:
-        raise ValueError('"start_index" must be zero or one.')
-
-    # Adjust indices to zero-based.
-    if start_index == 1:
-        cindex = deepcopy(cindex)
-        cindex[cindex > 0] -= 1  # Don't adjust the break values.
-
-    # Split geometries if there is a break value to use. Otherwise, we'll operate on the single split.
-    if multipart_break is None:
-        splits = [cindex]
-    else:
-        splits = _get_splits_(cindex, multipart_break)
-    len_splits = len(splits)
-
-    # Convert and extract hole coordinate indices.
     if 'polygon' in geom_type:
-        holes = _get_holes_(hole_break, splits, x, y, z=z)
-    else:
-        holes = None
-
-    # Convert coordinate index sequences into coordinate sequences.
-    coords = _extract_coordinates_(splits, x, y, z=z)
-
-    # Convert the coordinate indices to the geometry object. There are separate paths for a single and multi-geometry.
-    if len_splits == 1:
-        if 'point' in geom_type:
-            # Point coordinate sequences are not nested.
-            ret = shapely_type(*coords[0])
-        elif 'polygon' in geom_type:
-            # Polygons optionally require information on holes/interiors. Passing an empty list is okay with Shapely.
-            ret = shapely_type(coords[0], holes[0])
-        else:
-            # This is only for a line string.
-            ret = shapely_type(coords[0])
-    else:
-        # With the exception of a polygon, multipart geometries are first converted to single part before being passed
-        # to the multipart converter.
-        ret = [None] * len_splits
-        if 'point' in geom_type:
-            # Remove a list level for multipoints.
-            coords = [c[0] for c in coords]
-        # Convert to the single part geometries.
-        for idx, c in enumerate(coords):
-            if 'polygon' in geom_type:
-                ret[idx] = shapely_type(c, holes[idx])
+        single_type = NCSG_GEOM_OBJECT_MAP['polygon']
+        holes = []
+        polygons = []
+        exterior = None
+        for part in cf_geom:
+            part_coords = _extract_geom_part_coordinates(part)
+            if 'ring_type' in part and part['ring_type'] == RingType.INNER:
+                holes.append(part_coords)
+            elif exterior is not None:
+                # New exterior. Finish previous polygon.
+                polygon = single_type(exterior, holes)
+                polygons.append(polygon)
+                # Start new polygon
+                holes = []
+                exterior = part_coords
             else:
-                ret[idx] = shapely_type(c)
-    if len_splits > 1 or geom_type.startswith('multi'):
-        if len_splits == 1:
-            # Only one split, but we want to convert to a multi-geometry.
-            ret = [ret]
-        # Collect the single part geometries into a multipart collection.
-        ret = _get_shapely_klass_(geom_type, single=False)(ret)
-
+                exterior = part_coords
+        # Finish last polygon
+        polygon = single_type(exterior, holes)
+        polygons.append(polygon)
+        # Create final geometry
+        if geom_type.startswith('multi'):
+            ret = shapely_type(polygons)
+        else:
+            ret = polygons[0]
+    else:
+        coords = [_extract_geom_part_coordinates(part) for part in cf_geom]
+        if len(coords) == 1 and not geom_type.startswith('multi'):
+            coords = coords[0]
+        ret = shapely_type(coords)
+        
     return ret
 
 
-def _get_holes_(hole_break, multipart_splits, x, y, z=None):
-    len_splits = len(multipart_splits)
-    holes = [[]] * len_splits
-    if hole_break is not None:
-        # Check for holes in polygons.
-        for idx, hidx in enumerate(multipart_splits):
-            # Need to remove the hole indices from the exterior coordinates.
-            hole_split_indices = np.where(hidx == hole_break)[0]
-            if len(hole_split_indices) > 0:
-                multipart_splits[idx] = multipart_splits[idx][0:hole_split_indices[0]]
-
-            # Split holes into coordinate index sequences.
-            hsplits = _get_splits_(hidx, hole_break)
-            holes[idx] = hsplits[1:]
-
-        # Convert coordinate index sequences for holes into actual coordinates.
-        for hidx, h in enumerate(holes):
-            holes[hidx] = _extract_coordinates_(h, x, y, z=z)
-    return holes
-
-
-def _get_splits_(to_split, break_value):
-    # Locate the indices of the split values.
-    widx = np.where(to_split == break_value)[0]
-    # Only bother to break apart the array if the split value is found.
-    if len(widx) == 0:
-        splits = [to_split]
+def _extract_geom_part_coordinates(part):
+    coords = []
+    x_vals = part['x']
+    y_vals = part['y']
+    if 'z' in part:
+        z_vals = part['z']
     else:
-        splits = []
-        start_of_split = 0
-        for ctr, w in enumerate(widx):
-            splits.append(to_split[start_of_split: w])
-            start_of_split = w + 1
-        # Do not forget the coordinates following the last split!
-        splits.append(to_split[start_of_split:])
-    return splits
-
-
-def _extract_coordinates_(splits, x, y, z=None):
-    coords = [None] * len(splits)
-
-    # For each split, extract the coordinate indices from the coordinate arrays.
-    for idx_split, split in enumerate(splits):
-        sub_coords = [None] * len(split)
-        for sub_split_idx, coordinate_idx in enumerate(split):
-            sapp = [x[coordinate_idx], y[coordinate_idx]]
-            if z is not None:
-                sapp.append(z[coordinate_idx])
-            sub_coords[sub_split_idx] = sapp
-        coords[idx_split] = sub_coords
+        z_vals = None
+    for idx, x in enumerate(x_vals):
+        if z_vals is not None and z_vals[idx] is not None:
+            coord = (x, y_vals[idx], z_vals[idx])
+        else:
+            coord = (x, y_vals[idx])
+        coords.append(coord)
+    if len(coords) == 1:
+        coords = coords[0]
     return coords
 
-
+    
 def _get_geometry_iter_(geom):
     if isinstance(geom, BaseMultipartGeometry):
         ret = geom
     else:
         ret = [geom]
-    return ret
-
-
-def _get_shapely_klass_(geom_type, single=True):
-    if geom_type.startswith('multi'):
-        geom_type = geom_type[5:]
-    ret = NCSG_GEOM_OBJECT_MAP[geom_type]
-    if single:
-        ret = ret['single']
-    else:
-        ret = ret['multi']
     return ret
 
 
@@ -322,30 +198,31 @@ def loads_from_netcdf(path_or_object, target=None):
 
     try:
         if target is None:
-            target = _find_coordinate_index_variables_(ds.variables.values())
+            target = _find_geometry_container_variables_(ds.variables.values())
             if len(target) == 0:
-                raise NoCoordinateIndexVariablesFoundError
+                raise NoGeometryContainerVariablesFoundError
         else:
             if isinstance(target, basestring):
                 target = [target]
 
         ret = []
-        for tvar in target:
-            ncvar = ds.variables[tvar]
-            stop_encoding = _get_stop_encoding_(ncvar)
-            coordinates = _get_nodes_(ncvar, ds)
-            if stop_encoding == StopEncoding.VLEN:
-                gc = CFGeometryCollection(ncvar.__dict__[GeneralAttributes.GEOM_TYPE_NAME], ncvar[:], coordinates['x'],
-                                          coordinates['y'], z=coordinates.get('z'),
-                                          start_index=getattr(ncvar, 'start_index', 0),
-                                          multipart_break=getattr(ncvar, 'multipart_break_value', None),
-                                          hole_break=getattr(ncvar, 'hole_break_value', BreakValue.HOLE),
-                                          outer_ring_order=getattr(ncvar, 'outer_ring_order', None),
-                                          closure_convention=getattr(ncvar, 'closure_convention', None))
-            elif stop_encoding == StopEncoding.CRA:
-                raise NotImplementedError
+        for geom_var_name in target:
+            geom_var = ds.variables[geom_var_name]
+            geom_type = getattr(geom_var, GeneralAttributes.GEOM_TYPE_NAME)
+            coordinates = getattr(geom_var, GeneralAttributes.COORDINATES).split(' ')
+            x = _get_coord_vals_(ds, coordinates, GeneralAttributes.GEOM_X_NODE)
+            y = _get_coord_vals_(ds, coordinates, GeneralAttributes.GEOM_Y_NODE)
+            z = _get_coord_vals_(ds, coordinates, GeneralAttributes.GEOM_Z_NODE)
+            ring_types = _get_geom_aux_variable_(GeneralAttributes.RING_TYPE, geom_var, ds)
+            node_counts = _get_geom_aux_variable_(GeneralAttributes.NODE_COUNT, geom_var, ds)
+            part_node_counts = _get_geom_aux_variable_(GeneralAttributes.PART_NODE_COUNT, geom_var, ds)
+
+            if _is_vlen_(geom_var, ds):
+                is_multipoint = geom_type == 'multipoint'
+                geoms = _geoms_from_vlen_(x, y, z, ring_types, part_node_counts, is_multipoint)
             else:
-                raise NotImplementedError("{} not recognized: {}".format(StopEncoding.NAME, stop_encoding))
+                geoms = _geoms_from_cra_(x, y, z, ring_types, node_counts, part_node_counts)
+            gc = CFGeometryCollection(geom_type, geoms)
             ret.append(gc)
         return tuple(ret)
     finally:
@@ -353,29 +230,105 @@ def loads_from_netcdf(path_or_object, target=None):
             ds.close()
 
 
-def _find_coordinate_index_variables_(variables):
+def _find_geometry_container_variables_(variables):
     ret = []
     for var in variables:
-        if 'cf_role' in var.ncattrs() and var.cf_role == GeneralAttributes.CF_ROLE_VALUE_GEOMETRY_VARIABLE:
-            ret.append(var.name)
+        if (GeneralAttributes.GEOM_TYPE_NAME in var.ncattrs() and
+            getattr(var, GeneralAttributes.GEOM_TYPE_NAME) in NCSG_GEOM_OBJECT_MAP and
+            GeneralAttributes.COORDINATES in var.ncattrs()):
+                try:
+                    ret.append(var.name)
+                except AttributeError:
+                    ret.append(var._name)  # For older netCDF4 modules?
     return ret
 
 
-def _get_nodes_(nc_cindex, nc_ds):
-    coordinates = getattr(nc_cindex, GeneralAttributes.COORDINATES).split(' ')
-    keys = ['x', 'y', 'z']
-    ret = {}
-    for idx, key in enumerate(keys):
-        try:
-            ret[key] = nc_ds.variables[coordinates[idx]][:]
-        except IndexError:
-            # There may not be a z coordinate in the data file. Set the z value to None and continue.
-            if key == 'z':
-                ret['z'] = None
+def _is_vlen_(geom_var, nc_dataset):
+    coord_var_name = getattr(geom_var, GeneralAttributes.COORDINATES).split(' ')[0]
+    coord_var = nc_dataset.variables[coord_var_name]
+    return isinstance(coord_var[0], np.ndarray)
+
+
+def _get_coord_vals_(nc_dataset, candidate_names, coord_type):
+    for name in candidate_names:
+        var = nc_dataset.variables[name]
+        role = getattr(var, GeneralAttributes.CF_ROLE_NAME)
+        if role == coord_type:
+            return var[:]
+    return None
+
+
+def _get_geom_aux_variable_(aux_attr, geom_var, nc_dataset):
+    var = None
+    if aux_attr in geom_var.ncattrs():
+        var_name = getattr(geom_var, aux_attr)
+        if var_name:
+            var = nc_dataset.variables[var_name][:]
+    return var
+
+
+def _geoms_from_cra_(x_vals, y_vals, z_vals, ring_types, node_counts, part_node_counts):
+    geoms = []
+    has_z = z_vals is not None
+    if node_counts is None:
+        # Single node per geom. Make list to facilitate looping.
+        node_counts = [1] * len(x_vals)
+    if part_node_counts is None:
+        # No parts. Use node count list to facilitate looping.
+        part_node_counts = node_counts[:]
+    if ring_types is None:
+        # Use default value of outer ring to facilitate looping
+        ring_types = [RingType.OUTER] * len(part_node_counts)
+
+    start_node = 0
+    part_idx = 0
+    for node_count in node_counts:
+        geom = []
+        node_tally = 0
+        while node_tally < node_count:
+            part_node_count = part_node_counts[part_idx]
+            end_node = start_node + part_node_count
+            part = {'ring_type': ring_types[part_idx]}
+            part['x'] = x_vals[start_node:end_node]
+            part['y'] = y_vals[start_node:end_node]
+            if has_z:
+                part['z'] = z_vals[start_node:end_node]
             else:
-                raise
-    return ret
+                part['z'] = None
+            geom.append(part)
+            start_node = end_node
+            node_tally += part_node_count
+            part_idx += 1
+        geoms.append(geom)
+    return geoms
 
 
-def _get_stop_encoding_(nc_cindex):
-    return nc_cindex.__dict__[StopEncoding.NAME]
+def _geoms_from_vlen_(x_vals, y_vals, z_vals, ring_types, part_node_counts, is_multipoint):
+    geoms = []
+    has_z = z_vals is not None
+    if part_node_counts is None:
+        # No parts. Make list to facilitate looping.
+        if is_multipoint:
+            part_node_counts = [[1] * len(x_per_geom) for x_per_geom in x_vals]
+        else:
+            part_node_counts = [[len(x_per_geom)] for x_per_geom in x_vals]
+    if ring_types is None:
+        # Use default value of outer ring to facilitate looping
+        ring_types = [[RingType.OUTER] * len(c) for c in part_node_counts]
+    
+    for geom_idx, x_arr in enumerate(x_vals):
+        geom = []
+        start_idx = 0
+        for part_idx, part_node_count in enumerate(part_node_counts[geom_idx]):
+            part = {'ring_type': ring_types[geom_idx][part_idx]}
+            end_idx = start_idx + part_node_count
+            part['x'] = x_arr[start_idx:end_idx]
+            part['y'] = y_vals[geom_idx][start_idx:end_idx]
+            if has_z:
+                part['z'] = z_vals[geom_idx][start_idx:end_idx]
+            else:
+                part['z'] = None
+            start_idx = end_idx
+            geom.append(part)
+        geoms.append(geom)
+    return geoms
