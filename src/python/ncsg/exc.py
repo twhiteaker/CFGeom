@@ -13,9 +13,10 @@ class AbstractNCSGException(Exception):
         return self.message
 
 
-class NoCoordinateIndexVariablesFoundError(AbstractNCSGException):
+class NoGeometryContainerVariablesFoundError(AbstractNCSGException):
     def __init__(self):
-        message = 'No coordinate index variables found. Provide a "target" or set the "{}" attribute on the ' \
-                  'coordinate index variable to "{}".'.format(GeneralAttributes.CF_ROLE_NAME,
-                                                              GeneralAttributes.CF_ROLE_VALUE)
-        super().__init__(message)
+        message = ('No geometry variables found. Provide a "target" or assign'
+                   '"{}" and "{}" attributes on the geometry variable.').format(
+                       GeneralAttributes.GEOM_TYPE_NAME,
+                       GeneralAttributes.COORDINATES)
+        super(NoGeometryContainerVariablesFoundError, self).__init__(message)
