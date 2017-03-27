@@ -45,7 +45,7 @@ class CFGeometryCollection(AbstractNCSGObject):
         for geom in self.geoms:
             for part in geom:                
                 assert len(part['x']) == len(part['y'])
-                if part['z'] is not None:
+                if 'z' in part and part['z'] is not None:
                     assert len(part['z']) == len(part['x'])
 
 
@@ -200,6 +200,7 @@ class CFGeometryCollection(AbstractNCSGObject):
 
 
     def export_cra_arrays(self):
+        from ncsg.cf import from_shapely, to_shapely
         x = []
         y = []
         ring_type = []
@@ -212,6 +213,11 @@ class CFGeometryCollection(AbstractNCSGObject):
             z = None
 
         for geom in self.geoms:
+            # Use Shapely to enforce anticlockwise exterior rings and
+            # first-last node equivalence.
+            shapely_geom = to_shapely(self.geom_type, geom)
+            geom = from_shapely(self.geom_type, shapely_geom).geoms[0]
+            
             node_counter = 0
             for part in geom:
                 x.extend(part['x'])
@@ -227,6 +233,7 @@ class CFGeometryCollection(AbstractNCSGObject):
 
 
     def export_vlen_arrays(self):
+        from ncsg.cf import from_shapely, to_shapely
         geom_cnt = len(self.geoms)
         x = np.zeros(geom_cnt, dtype=object)
         y = np.zeros(geom_cnt, dtype=object)
@@ -239,6 +246,11 @@ class CFGeometryCollection(AbstractNCSGObject):
             z = None
 
         for idx, geom in enumerate(self.geoms):
+            # Use Shapely to enforce anticlockwise exterior rings and
+            # first-last node equivalence.
+            shapely_geom = to_shapely(self.geom_type, geom)
+            geom = from_shapely(self.geom_type, shapely_geom).geoms[0]
+            
             x_geom = []
             y_geom = []
             ring_type_geom = []

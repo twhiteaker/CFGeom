@@ -3,6 +3,7 @@ from copy import deepcopy
 import netCDF4 as nc
 import numpy as np
 from _pytest.assertion.util import basestring
+from shapely.geometry import Polygon
 from shapely.geometry.base import BaseGeometry, BaseMultipartGeometry
 from shapely.geometry.polygon import orient
 
@@ -74,7 +75,7 @@ def from_shapely(geom_type, geoms, string_id=None):
                         cf_part = {'ring_type': RingType.INNER}
                         # Always orient holes CW.
                         if ii.is_ccw:
-                            ii = orient(ii, sign=-1.0)
+                            ii = orient(Polygon(ii), sign=-1.0).exterior
                         # Add interior's coordinates to coordinate containers.
                         coords = np.array(ii)
                         cf_part['x'] = coords[:, 0].tolist()
