@@ -21,7 +21,7 @@ class GeneralAttributes(object):
     GEOM_TYPE_NAME = 'geometry_type'
     NODE_COUNT = 'node_count'
     PART_NODE_COUNT = 'part_node_count'
-    RING_TYPE = 'polygon_ring_type'
+    RING_TYPE = 'interior_ring'
     COORDINATES = 'node_coordinates'
     STANDARD_NAME = 'standard_name'
     GEOM_X_NODE = 'geometry_x_node'
@@ -36,8 +36,8 @@ class GeneralAttributes(object):
 
 
 class RingType(object):
-    OUTER = 1
-    INNER = 0
+    OUTER = 0
+    INNER = 1
 
 
 class DataType(object):
@@ -60,4 +60,4 @@ class NetcdfVariable(object):
     Z = 'z'
     NODE_COUNT = 'node_count'
     PART_NODE_COUNT = 'part_node_count'
-    RING_TYPE = 'polygon_ring_type'
+    RING_TYPE = 'interior_ring'

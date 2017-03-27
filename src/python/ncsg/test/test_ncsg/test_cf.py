@@ -167,29 +167,29 @@ class TestPolygon(AbstractNCSGTest):
         self.assertEqual(p, desired)
 
     def test_to_shapely_polygon_2d_hole(self):
-        geom = [{'x': [35, 45, 15, 10], 'y': [10, 45, 40, 20], 'ring_type': 1},
-                {'x': [20, 35, 30, 20], 'y': [30, 35, 20, 30], 'ring_type': 0}]
+        geom = [{'x': [35, 45, 15, 10], 'y': [10, 45, 40, 20], 'ring_type': 0},
+                {'x': [20, 35, 30, 20], 'y': [30, 35, 20, 30], 'ring_type': 1}]
 
         p = cf.to_shapely('polygon', geom)
         desired = wkt.loads(self.fixture_wkt['2d']['polygon_hole'])
         self.assertEqual(p, desired)
 
     def test_to_shapely_polygon_2d_multipart_hole(self):
-        geom = [{'x': [40, 20, 45], 'y': [40, 45, 30], 'ring_type': 1},
-                {'x': [20, 10, 10, 30, 45], 'y': [35, 30, 10, 5, 20], 'ring_type': 1},
-                {'x': [30, 20, 20], 'y': [20, 15, 25], 'ring_type': 0}]
+        geom = [{'x': [40, 20, 45], 'y': [40, 45, 30], 'ring_type': 0},
+                {'x': [20, 10, 10, 30, 45], 'y': [35, 30, 10, 5, 20], 'ring_type': 0},
+                {'x': [30, 20, 20], 'y': [20, 15, 25], 'ring_type': 1}]
 
         p = cf.to_shapely('multipolygon', geom)
         desired = wkt.loads(self.fixture_wkt['2d']['multipolygon_hole'])
         self.assertEqual(p, desired)
 
     def test_to_shapely_polygon_2d_multipart_holes(self):
-        geom = [{'x': [0, 20, 20, 0], 'y': [0, 0, 20, 20], 'ring_type': 1},
-                {'x': [1, 10, 19], 'y': [1, 5, 1], 'ring_type': 0},
-                {'x': [5, 7, 9], 'y': [15, 19, 15], 'ring_type': 0},
-                {'x': [11, 13, 15], 'y': [15, 19, 15], 'ring_type': 0},
-                {'x': [5, 9, 7], 'y': [25, 25, 29], 'ring_type': 1},
-                {'x': [11, 15, 13], 'y': [25, 25, 29], 'ring_type': 1}]
+        geom = [{'x': [0, 20, 20, 0], 'y': [0, 0, 20, 20], 'ring_type': 0},
+                {'x': [1, 10, 19], 'y': [1, 5, 1], 'ring_type': 1},
+                {'x': [5, 7, 9], 'y': [15, 19, 15], 'ring_type': 1},
+                {'x': [11, 13, 15], 'y': [15, 19, 15], 'ring_type': 1},
+                {'x': [5, 9, 7], 'y': [25, 25, 29], 'ring_type': 0},
+                {'x': [11, 15, 13], 'y': [25, 25, 29], 'ring_type': 0}]
 
         p = cf.to_shapely('multipolygon', geom)
         desired = wkt.loads(self.fixture_wkt['2d']['multipolygons_holes'])

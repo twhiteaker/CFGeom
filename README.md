@@ -149,11 +149,11 @@ variables:
     geometry_container:geometry_type = "multipolygon" ;
     geometry_container:node_count = "node_count"; // variable containing count of nodes per geometry -- may span multiple parts.
     geometry_container:part_node_count = "part_node_count" ; // variable containing count of nodes per part -- not required for single part geometry types.
-    geometry_container:outside_ring = "outside_ring" ; // Variable indicating if parts are holes or not -- not required unless polygons with holes are present.
+    geometry_container:interior_ring = "interior_ring" ; // variable indicating if parts are holes or not -- not required unless polygons with holes are present.
     geometry_container:node_coordinates = "x y" ; // variables containing spatial node data.
   int node_count(instance); // count of coordinates in each instance geometry
   int part_node_count(part) ; // count of coordinates in each geometry part
-  int outside_ring(part) ; // type of each geometry part
+  int interior_ring(part) ; // 1 for polygon interior rings; 0 for exterior rings
   double x(node) ;
     x:units = "degrees_east" ;
     x:standard_name = "longitude" ; // or projection_x_coordinate
@@ -190,7 +190,7 @@ data:
 
   part_node_count = 5, 5, 5; // three parts
  
-  polygon_ring_type = 1, 1, 1 ; // all parts are outside rings
+  interior_ring = 0, 0, 0 ; // all parts are outside rings
  
   x = 35, 30, 25, 26, 35, 22, 22, 15, 10, 22, 30, 30, 20, 10, 30 ; // note anti-clockwise order of rings
  
@@ -208,10 +208,10 @@ Starting from the time series featureType:
 4) Find the `coordinates` attribute of element variables for the instance dimension  
 5) See the `geometry` attribute of the element variable or auxiliary coordinate variable  
 6) See the `geometry_type` in the variable referenced by by the `geometry` attribute  
-7) Iterate over geometries found in the `node_coordinates` variable. Geometries are found using the `node_count` variable. Geometry parts are found using the `part_node_count` and `outside_ring` variables.
+7) Iterate over geometries found in the `node_coordinates` variable. Geometries are found using the `node_count` variable. Geometry parts are found using the `part_node_count` and `interior_ring` variables.
 
 Or, without reference to the timeSeries:
 
 1) See CF-1.8 conventions  
 2) See the `geometry_type` of `multipolygon`  
-3) Iterate over geometries found in the `node_coordinates` variable. Geometries are found using the `node_count` variable. Geometry parts are found using the `part_node_count` and `polygon_ring_type` variables.
+3) Iterate over geometries found in the `node_coordinates` variable. Geometries are found using the `node_count` variable. Geometry parts are found using the `part_node_count` and `interior_ring` variables.
