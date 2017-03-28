@@ -1,4 +1,4 @@
-"""Add geometry to Bull Creek streamflow data and exports CDL."""
+"""Add geometry to Bull Creek streamflow data and export CDL."""
 
 from collections import OrderedDict
 from datetime import datetime, timedelta
@@ -14,12 +14,12 @@ from shapely.geometry import shape
 sys.path.append(os.path.abspath('../src/python'))
 from ncsg import cf
 
-CATCHMENTS = '../../data/use_cases/Bull_Creek/nhd_catchment.json'
-FLOWLINES = '../../data/use_cases/Bull_Creek/nhd_flowline.json'
-UPSTREAM_POINTS = '../../data/use_cases/Bull_Creek/upstream_point.json'
-IN = '../../data/use_cases/Bull_Creek/nwm_bullcreek.cdl'
-OUT_VLEN = '../../misc/tmp/bull_creek_NCSG_VLEN.nc'
-OUT_CRA = '../../misc/tmp/bull_creek_NCSG_CRA.nc'
+CATCHMENTS = '../data/use_cases/Bull_Creek/nhd_catchment.json'
+FLOWLINES = '../data/use_cases/Bull_Creek/nhd_flowline.json'
+UPSTREAM_POINTS = '../data/use_cases/Bull_Creek/upstream_point.json'
+IN = '../data/use_cases/Bull_Creek/bull_creek_streamflow.cdl'
+OUT_VLEN = '../misc/tmp/bull_creek_NCSG_VLEN.nc'
+OUT_CRA = '../misc/tmp/bull_creek_NCSG_CRA.nc'
 CATCHMENTS_SID = 'catchments_'
 FLOWLINES_SID = 'flowlines_'
 UPSTREAM_SID = 'upstream_'
@@ -143,6 +143,7 @@ def main():
             nc.variables['lon'].geometry = geom_var_name
             write_collection(cf_polys, poly_props, is_cra, nc)
         ncdump(out_path)
+
 
 if __name__ == '__main__':
     main()
