@@ -1,34 +1,51 @@
 netcdf nwm_bullcreek {
-  dimensions:
-    time = 15;
-    station = 20;
-  variables:
-    int time(time);
-      time:long_name = "time";
-      time:standard_name = "time";
-      time:units = "seconds since 2016-11-07 20:00 UTC";
+dimensions:
+  time = 15;
+  comid = 20;
+variables:
+  int time(time);
+    time:long_name = "time";
+    time:standard_name = "time";
+    time:units = "seconds since 2016-11-07 20:00 UTC";
+  int comid(comid);
+    comid:cf_role = "timeseries_id" ;
+  double lat(comid) ;
+    lat:long_name = "Latitude of upstream end of river segment" ;
+    lat:units = "degrees_north" ;
+    lat:standard_name = "latitude" ;
+  double lon(comid) ;
+    lon:long_name = "Longitude of upstream end of river segment" ;
+    lon:units = "degrees_east" ;
+    lon:standard_name = "longitude" ;
+  float streamflow(time, comid);
+    streamflow:long_name = "River Flow";
+    streamflow:units = "meter^3 / sec";
+    streamflow:missing_value = -8.9999998E15f;
+    streamflow:coordinates = "time lat lon" ;
+    streamflow:grid_mapping = "crs" ;
+  int crs ;
+    crs:grid_mapping_name = "latitude_longitude" ;
+    crs:longitude_of_prime_meridian = 0.0 ;
+    crs:semi_major_axis = 6378137.0 ;
+    crs:inverse_flattening = 298.257223563 ;
+// global attributes:
+  :Conventions = "CF-1.8" ;
+  :featureType = "timeSeries" ;
 
-    int station_id(station);
-      station_id:long_name = "Station id";
+data:
 
-    float streamflow(time, station);
-      streamflow:long_name = "River Flow";
-      streamflow:units = "meter^3 / sec";
-
-  // global attributes:
-  :Conventions = "Unidata Observation Dataset v1.0";
-  :cdm_datatype = "Station";
-  :model_initialization_time = "2016-11-07_19:00:00";
-  :station_dimension = "station";
-  :missing_value = -8.9999998E15f; // float
-  :stream_order_output = 1; // int
-  :model_output_valid_time = "2016-11-08_04:00:00";
-
- data:
 time =
   0, 3600, 7200, 10800, 14400, 18000, 21600, 25200, 28800, 32400, 36000, 39600, 43200, 46800, 50400 ;
-station_id =
+
+comid =
   5781157, 5781193, 5781183, 5781189, 5781173, 5781133, 5781163, 5781131, 5781141, 5781171, 5781159, 5781129, 5781139, 5781149, 5781185, 5781187, 5781145, 5781781, 5781191, 5781811 ;
+
+lat = 
+  30.394875219, 30.359878420, 30.382667486, 30.375207020, 30.390782686, 30.419268819, 30.418718086, 30.419385019, 30.412698819, 30.421760686, 30.419293419, 30.449735086, 30.413898419, 30.402990419, 30.395374286, 30.385456486, 30.411992219, 30.411970019, 30.371507220, 30.358365420 ;
+
+lon = 
+  -97.839571625, -97.788739225, -97.770506225, -97.784337692, -97.773616625, -97.807644692, -97.806455225, -97.810685625, -97.822483092, -97.766602225, -97.776045225, -97.826984892, -97.845698425, -97.848716292, -97.825136825, -97.841002625, -97.832187625, -97.834487892, -97.804296025, -97.788106425 ;
+
 streamflow =
     0.01282661, 0.42142317, 0.6132626, 0.36973292, 0.27779508, 0.07792676, 0.21289445, 0.022072816, 0.02037233, 0.29445773, 0.054952983, 0.055809632, 0.0016493346, 0.0068484014, 0.010602541, 0.022358151, 0.007151061, 0.0069096438, 0.04669686, -8.9999998E15,
     0.0128412, 0.30901003, 0.2857758, 0.27685326, 0.17878114, 0.07953472, 0.14906085, 0.022236675, 0.020542009, 0.10206464, 0.028738864, 0.05726831, 0.0016436642, 0.007000346, 0.010707803, 0.0057302667, 0.0073062116, 0.0070617246, 0.03053636, -8.9999998E15,

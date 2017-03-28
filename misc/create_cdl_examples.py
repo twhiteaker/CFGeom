@@ -1,15 +1,18 @@
-# Place in src/python folder
+"""Creates a markdown file with VLEN CDL based on WKT examples."""
 
 import datetime
 import json
 from collections import OrderedDict
+import os
+import sys
 
 from shapely import wkt
 
+sys.path.append(os.path.abspath('../src/python'))
 from ncsg import cf
 
-fixture_wkt = '../../data/fixture_wkt.json'
-out_file = '../../misc/tmp/create_cdl_examples.md'
+fixture_wkt = '../data/fixture_wkt.json'
+out_file = 'tmp/create_cdl_examples.md'
 descriptions = {'point': {'msg': 'Point', 'order': 0},
                 'multipoint': {'msg': 'MultiPoint', 'order': 3},
                 'polygon': {'msg': 'Polygon', 'order': 2},
