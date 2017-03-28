@@ -133,7 +133,8 @@ class CFGeometryCollection(AbstractNCSGObject):
             setattr(ds, GeneralAttributes.CONVENTIONS, GeneralAttributes.CONVENTIONS_VALUE)
 
             # Dimensions
-            ds.createDimension(dname_geom_count, len(self.geoms))
+            if dname_geom_count not in ds.dimensions:
+                ds.createDimension(dname_geom_count, len(self.geoms))
             if cra:
                 node_type = DataType.FLOAT
                 part_node_count_dim = dname_part_count
@@ -298,6 +299,10 @@ class CFGeometryCollection(AbstractNCSGObject):
 
 
 def _make_vltype_(nc_dataset, base_type, type_name):
+    if nc_dataset.data_model != 'NETCDF4':
+        raise ValueError('Input netCDF dataset must use NETCDF4 data model to '
+                         'support VLEN types. Current data model: {}'.format(
+                             nc_dataset.data_model))
     try:
         vltype = nc_dataset.createVLType(base_type, type_name)
     except RuntimeError:
