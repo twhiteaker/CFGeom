@@ -30,20 +30,20 @@ Extending Example 7.2 in the NetCDF-CF 1.7 specification, and assuming 10 vertic
 
 ```
 dimensions:
-  imax = 128;
-  jmax = 64;
-  nv = 44;
+  imax = 128 ;
+  jmax = 64 ;
+  nv = 44 ;
 variables:
-  float lat(jmax,imax);
-    lat:long_name = "latitude";
-    lat:units = "degrees_north";
-    lat:bounds = "lat_bnds";
-  float lon(jmax,imax);
-    lon:long_name = "longitude";
-    lon:units = "degrees_east";
-    lon:bounds = "lon_bnds";
-  float lat_bnds(jmax,imax,nv);
-  float lon_bnds(jmax,imax,nv);
+  float lat(jmax,imax) ;
+    lat:long_name = "latitude" ;
+    lat:units = "degrees_north" ;
+    lat:bounds = "lat_bnds" ;
+  float lon(jmax,imax) ;
+    lon:long_name = "longitude" ;
+    lon:units = "degrees_east" ;
+    lon:bounds = "lon_bnds" ;
+  float lat_bnds(jmax,imax,nv) ;
+  float lon_bnds(jmax,imax,nv) ;
 ```
 
 With regards to time series, Discrete Sampling Geometries (DSGs) handle data from one (or a collection of) `timeSeries` (point), `trajectory`, `profile`, `trajectoryProfile` or `timeSeriesProfile` geometries. Measurements are from a **point** (timeSeries and profile) or **points** along a trajectory. This proposal builds on the core DSG `point` and `timeSeries` types which provide support for basic time series use cases e.g., a timeSeries which is measured (or modeled).
@@ -83,7 +83,7 @@ variables:
     lon:units = "degrees_east" ;
     lon:standard_name = "longitude" ;
   int crs ;
-    crs:grid_mapping_name = "latitude_longitude";
+    crs:grid_mapping_name = "latitude_longitude" ;
     crs:longitude_of_prime_meridian = 0.0 ;
     crs:semi_major_axis = 6378137.0 ;
     crs:inverse_flattening = 298.257223563 ;
@@ -145,15 +145,15 @@ variables:
     crs:longitude_of_prime_meridian = 0.0 ;
     crs:semi_major_axis = 6378137.0 ;
     crs:inverse_flattening = 298.257223563 ;
-  int geometry_container; // containing variable -- datatype irrelevant because no data
+  int geometry_container ; // containing variable -- datatype irrelevant because no data
     geometry_container:geometry_type = "multipolygon" ;
-    geometry_container:node_count = "node_count"; // variable containing count of nodes per geometry -- may span multiple parts.
-    geometry_container:part_node_count = "part_node_count" ; // variable containing count of nodes per part -- not required for single part geometry types.
+    geometry_container:node_count = "node_count" ; // variable counting nodes per geometry -- may span multiple parts.
+    geometry_container:part_node_count = "part_node_count" ; // variable counting nodes per part -- required for multiline, multipolygon, and polygons with holes.
     geometry_container:interior_ring = "interior_ring" ; // variable indicating if parts are holes or not -- not required unless polygons with holes are present.
     geometry_container:node_coordinates = "x y" ; // variables containing spatial node data.
   int node_count(instance); // count of coordinates in each instance geometry
   int part_node_count(part) ; // count of coordinates in each geometry part
-  int interior_ring(part) ; // 1 for polygon interior rings; 0 for exterior rings
+  int interior_ring(part) ; // 1 for polygon interior ring; 0 for exterior ring
   double x(node) ;
     x:units = "degrees_east" ;
     x:standard_name = "longitude" ; // or projection_x_coordinate
