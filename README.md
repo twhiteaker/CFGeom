@@ -4,6 +4,8 @@
 
 **DRAFT** CF Convention for Representing Simple Geometry Types
 
+This project describes how points, lines, polygons, and their multipart equivalents could be represented in NetCDF-CF. The project includes a Python reference implementation for writing simple geometries to a netCDF file.
+
 ## Scope
 
 * Extends existing CF capabilities in CF 1.7 to include _geometries_ of types point, line, and polygon.
