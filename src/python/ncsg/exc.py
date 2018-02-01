@@ -15,7 +15,7 @@ class AbstractNCSGException(Exception):
 
 class NoGeometryContainerVariablesFoundError(AbstractNCSGException):
     def __init__(self):
-        message = ('No geometry variables found. Provide a "target" or assign'
+        message = ('No geometry variables found. Provide a "target" or assign '
                    '"{}" and "{}" attributes on the geometry variable.').format(
                        GeneralAttributes.GEOM_TYPE_NAME,
                        GeneralAttributes.COORDINATES)

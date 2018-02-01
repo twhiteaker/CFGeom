@@ -20,8 +20,8 @@ def from_shapely(geom_type, geoms, string_id=None):
     """
     Create a CF geometry collection from a sequence of geometries.
 
-    :param str geom_type: The destination geometry type. Valid values are ``"point"``,
-     ``"line"``, ``"polygon"``, and multipart types `"multipoint"``, ``"multiline"``, ``"multipolygon"``.
+    :param str geom_type: The destination geometry type. Valid values are
+    ``"point"``, ``"line"``, ``"polygon"``.
     :param sequence geoms: A sequence of geometry objects to convert.
     :return: :class:`~ncsg.CFGeometryCollection`
     """
@@ -188,8 +188,6 @@ def _get_coordinates_as_list_(coords, column_index):
 
 
 def loads_from_netcdf(path_or_object, target=None):
-    # TODO: doc and commenting
-    # TODO: order
     should_close = False
     if isinstance(path_or_object, nc.Dataset):
         ds = path_or_object

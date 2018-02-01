@@ -17,22 +17,22 @@ NCSG_GEOM_OBJECT_MAP = {'point': Point,
 
 
 class GeneralAttributes(object):
-    CF_ROLE_NAME = 'cf_role'
+    CF_ROLE_NAME = 'axis'
     GEOM_TYPE_NAME = 'geometry_type'
     NODE_COUNT = 'node_count'
     PART_NODE_COUNT = 'part_node_count'
     RING_TYPE = 'interior_ring'
     COORDINATES = 'node_coordinates'
     STANDARD_NAME = 'standard_name'
-    GEOM_X_NODE = 'geometry_x_node'
-    GEOM_Y_NODE = 'geometry_y_node'
-    GEOM_Z_NODE = 'geometry_z_node'
+    GEOM_X_NODE = 'X'
+    GEOM_Y_NODE = 'Y'
+    GEOM_Z_NODE = 'Z'
     CONVENTIONS = 'Conventions'
     CONVENTIONS_VALUE = 'CF-1.8'
     LONG_NAME = 'long_name'
     NODE_COUNT_LONG_NAME = 'count of coordinates in each instance geometry'
     PART_NODE_COUNT_LONG_NAME = 'count of nodes in each geometry part'
-    RING_TYPE_LONG_NAME = 'type of each geometry part'
+    RING_TYPE_LONG_NAME = 'type of each polygon geometry part'
 
 
 class RingType(object):

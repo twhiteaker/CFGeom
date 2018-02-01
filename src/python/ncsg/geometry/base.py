@@ -20,7 +20,6 @@ class CFGeometryCollection(AbstractNCSGObject):
     """
     A collection of CF geometries.
     """
-    # TODO: Docstring and commenting
     __metaclass__ = ABCMeta
 
 
@@ -291,7 +290,6 @@ class CFGeometryCollection(AbstractNCSGObject):
 
 
     def has_z(self):
-        # TODO: possible that only some z values are NULL?
         try:
             return self.geoms[0][0]['z'] is not None
         except:
