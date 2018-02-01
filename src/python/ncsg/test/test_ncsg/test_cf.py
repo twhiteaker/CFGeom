@@ -18,10 +18,14 @@ class Test(AbstractNCSGTest):
         for dim, wkts in self.fixture_wkt.items():
             for geom_type, wktvalue in wkts.items():
                 geom = wkt.loads(wktvalue)
-                coll = cf.from_shapely(geom.geom_type, geom)
+                coll = cf.from_shapely(geom)
                 path = self.get_temporary_file_path('{}_{}.nc'.format(dim, geom_type))
                 coll.write_netcdf(path)
                 loaded_coll = loads_from_netcdf(path)[0]
+                print '\n\n   ---   from wkt'
+                print geom
+                print '\n\n   ---   from nc'
+                print loaded_coll.as_shapely()[0]
                 self.assertTrue(geom.almost_equals(loaded_coll.as_shapely()[0]))
                 self.assertTrue(coll.as_shapely()[0].almost_equals(loaded_coll.as_shapely()[0]))
                 self.assertEqual(loaded_coll, coll)
@@ -29,7 +33,7 @@ class Test(AbstractNCSGTest):
         # Test with a target.
         wktvalue = self.fixture_wkt['2d']['point']
         geom = wkt.loads(wktvalue)
-        coll = cf.from_shapely(geom.geom_type, geom)
+        coll = cf.from_shapely(geom)
         path = self.get_temporary_file_path('target.nc')
         coll.write_netcdf(path)
         loaded = loads_from_netcdf(path, target=NetcdfVariable.GEOMETRY_CONTAINER)[0]
@@ -39,7 +43,7 @@ class Test(AbstractNCSGTest):
 class TestPoint(AbstractNCSGTest):
     def test_from_shapely_point_3d(self):
         geoms = [Point(1, 2, 10), Point(3, 4, 11), Point(5, 6, 12)]
-        coll = cf.from_shapely('Point', geoms)
+        coll = cf.from_shapely(geoms)
         self.assertEqual(len(coll.geoms), 3)
         self.assertIsNotNone(coll.geoms[0][0]['z'])
 
@@ -51,7 +55,7 @@ class TestPoint(AbstractNCSGTest):
         self.assertEqual(pt, desired)
 
         # Test this will be converted to a multipart if requested.
-        mpt = cf.to_shapely('multipoint', geom)
+        mpt = cf.to_shapely('point', geom, 'multipoint')
         self.assertIsInstance(mpt, MultiPoint)
 
     def test_to_shapely_point_3d(self):
@@ -67,7 +71,7 @@ class TestPoint(AbstractNCSGTest):
                 {'x': [20], 'y': [20]},
                 {'x': [30], 'y': [10]}]
 
-        mpt = cf.to_shapely('multipoint', geom)
+        mpt = cf.to_shapely('point', geom)
         desired = wkt.loads(self.fixture_wkt['2d']['multipoint'])
         self.assertEqual(mpt, desired)
 
@@ -77,7 +81,7 @@ class TestPoint(AbstractNCSGTest):
                 {'x': [20], 'y': [20], 'z': [300]},
                 {'x': [30], 'y': [10], 'z': [400]}]
 
-        mpt = cf.to_shapely('multipoint', geom)
+        mpt = cf.to_shapely('point', geom)
         desired = wkt.loads(self.fixture_wkt['3d']['multipoint'])
         self.assertEqual(mpt, desired)
 
@@ -85,7 +89,7 @@ class TestPoint(AbstractNCSGTest):
 class TestLineString(AbstractNCSGTest):
     def test_from_shapely_linestring_2d_multipart(self):
         geom = wkt.loads(self.fixture_wkt['2d']['multilinestring'])
-        coll = cf.from_shapely('multiline', geom)
+        coll = cf.from_shapely(geom)
         self.assertEqual(len(coll.geoms), 1)
         self.assertEqual(len(coll.geoms[0]), 2)
         self.assertEqual(len(coll.geoms[0][0]['x']), 3)
@@ -108,7 +112,7 @@ class TestLineString(AbstractNCSGTest):
         geom = [{'x': [10, 20, 10], 'y': [10, 20, 40]},
                 {'x': [40, 30, 40, 30], 'y': [40, 30, 20, 10]}]
 
-        mls = cf.to_shapely('multiline', geom)
+        mls = cf.to_shapely('line', geom)
         desired = wkt.loads(self.fixture_wkt['2d']['multilinestring'])
         self.assertEqual(mls, desired)
 
@@ -116,7 +120,7 @@ class TestLineString(AbstractNCSGTest):
         geom = [{'x': [10, 20, 10], 'y': [10, 20, 40], 'z': [100, 200, 300]},
                 {'x': [40, 30, 40, 30], 'y': [40, 30, 20, 10], 'z': [100, 200, 300, 400]}]
 
-        mls = cf.to_shapely('multiline', geom)
+        mls = cf.to_shapely('line', geom)
         desired = wkt.loads(self.fixture_wkt['3d']['multilinestring'])
         self.assertEqual(mls, desired)
 
@@ -128,7 +132,7 @@ class TestPolygon(AbstractNCSGTest):
             poly2 = wkt.loads(self.fixture_wkt[d]['polygon_hole'])
 
             geoms = [orient(poly1, sign=-1.0), poly2]
-            res = cf.from_shapely('polygon', geoms)
+            res = cf.from_shapely(geoms)
             self.assertIsInstance(res, CFGeometryCollection)
 
             for ctr, geom in enumerate(res.geoms):
@@ -146,14 +150,14 @@ class TestPolygon(AbstractNCSGTest):
 
         for cra in [False, True]:
             # Test with a single multipolygon.
-            res = cf.from_shapely('polygon', mp)
+            res = cf.from_shapely(mp)
             path = os.path.join(tempfile.gettempdir(), '_ncsg_test_output_.nc')
             res.write_netcdf(path, cra=cra)
             # self.ncdump(path, header=False)
             os.remove(path)
 
             # Test with multiple polygons.
-            res = cf.from_shapely('polygon', [mp, wkt.loads(p1), wkt.loads(p2)])
+            res = cf.from_shapely([mp, wkt.loads(p1), wkt.loads(p2)])
             path = os.path.join(tempfile.gettempdir(), '_ncsg_test_output_.nc')
             res.write_netcdf(path, cra=cra)
             # self.ncdump(path, header=False)
@@ -179,7 +183,7 @@ class TestPolygon(AbstractNCSGTest):
                 {'x': [20, 10, 10, 30, 45], 'y': [35, 30, 10, 5, 20], 'ring_type': 0},
                 {'x': [30, 20, 20], 'y': [20, 15, 25], 'ring_type': 1}]
 
-        p = cf.to_shapely('multipolygon', geom)
+        p = cf.to_shapely('polygon', geom)
         desired = wkt.loads(self.fixture_wkt['2d']['multipolygon_hole'])
         self.assertEqual(p, desired)
 
@@ -191,6 +195,6 @@ class TestPolygon(AbstractNCSGTest):
                 {'x': [5, 9, 7], 'y': [25, 25, 29], 'ring_type': 0},
                 {'x': [11, 15, 13], 'y': [25, 25, 29], 'ring_type': 0}]
 
-        p = cf.to_shapely('multipolygon', geom)
+        p = cf.to_shapely('polygon', geom)
         desired = wkt.loads(self.fixture_wkt['2d']['multipolygons_holes'])
         self.assertEqual(p, desired)

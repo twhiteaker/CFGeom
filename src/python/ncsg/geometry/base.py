@@ -24,7 +24,10 @@ class CFGeometryCollection(AbstractNCSGObject):
 
 
     def __init__(self, geom_type, geom_list, string_id=None):
+        valid_types = ['point', 'line', 'polygon']
         geom_type = geom_type.lower()
+        if geom_type not in valid_types:
+            raise ValueError('Invalid geometry type: ' + str(geom_type))
 
         if string_id is None:
             string_id = ''
@@ -117,8 +120,8 @@ class CFGeometryCollection(AbstractNCSGObject):
         else:
             x, y, z, part_node_count, ring_type = self.export_vlen_arrays()
         has_holes = self.has_holes()
-        geom_type = self.geom_type
-        has_multinode_parts = (geom_type in ['multiline', 'multipolygon'] or
+        geom_subtype = self.get_shapely_type()
+        has_multinode_parts = (geom_subtype in ['multiline', 'multipolygon'] or
                                has_holes)
 
         should_close = False
@@ -138,7 +141,7 @@ class CFGeometryCollection(AbstractNCSGObject):
                 node_type = DataType.FLOAT
                 part_node_count_dim = dname_part_count
                 part_node_type = DataType.INT
-                if geom_type != 'point':
+                if geom_subtype != 'point':
                     ds.createDimension(dname_node_count, len(x))
                     node_dim = dname_node_count
                 else:
@@ -148,7 +151,7 @@ class CFGeometryCollection(AbstractNCSGObject):
             else:
                 node_dim = dname_geom_count
                 part_node_count_dim = dname_geom_count
-                if geom_type != 'point':
+                if geom_subtype != 'point':
                     node_type = _make_vltype_(ds, DataType.FLOAT, DataType.NODE_VLTYPE)
                 else:
                     node_type = DataType.FLOAT
@@ -157,7 +160,7 @@ class CFGeometryCollection(AbstractNCSGObject):
 
             # Variables
             v_container = ds.createVariable(vname_container, DataType.INT)
-            setattr(v_container, GeneralAttributes.GEOM_TYPE_NAME, geom_type)
+            setattr(v_container, GeneralAttributes.GEOM_TYPE_NAME, self.geom_type)
             if z is None:
                 node_coords = vname_x + ' ' + vname_y
             else:
@@ -177,7 +180,7 @@ class CFGeometryCollection(AbstractNCSGObject):
                 setattr(v_z, GeneralAttributes.CF_ROLE_NAME, GeneralAttributes.GEOM_Z_NODE)
                 v_z[:] = z
 
-            if cra and geom_type != 'point':
+            if cra and geom_subtype != 'point':
                 v_node_count = ds.createVariable(vname_node_count, DataType.INT, (dname_geom_count,))
                 setattr(v_node_count, GeneralAttributes.LONG_NAME, GeneralAttributes.NODE_COUNT_LONG_NAME)
                 v_node_count[:] = node_count
@@ -216,7 +219,7 @@ class CFGeometryCollection(AbstractNCSGObject):
             # Use Shapely to enforce anticlockwise exterior rings and
             # first-last node equivalence.
             shapely_geom = to_shapely(self.geom_type, geom)
-            geom = from_shapely(self.geom_type, shapely_geom).geoms[0]
+            geom = from_shapely(shapely_geom).geoms[0]
             
             node_counter = 0
             for part in geom:
@@ -249,7 +252,7 @@ class CFGeometryCollection(AbstractNCSGObject):
             # Use Shapely to enforce anticlockwise exterior rings and
             # first-last node equivalence.
             shapely_geom = to_shapely(self.geom_type, geom)
-            geom = from_shapely(self.geom_type, shapely_geom).geoms[0]
+            geom = from_shapely(shapely_geom).geoms[0]
             
             x_geom = []
             y_geom = []
@@ -277,6 +280,16 @@ class CFGeometryCollection(AbstractNCSGObject):
 
         return (x, y, z, part_node_count, ring_type)
 
+
+    def get_shapely_type(self):
+        from ncsg.cf import shapely_type_from_ncsg
+        types = [shapely_type_from_ncsg(self.geom_type, g) for g in self.geoms]
+        types = set(types)
+        for t in types:
+            if 'multi' in t:
+                return 'multi' + self.geom_type
+        return self.geom_type
+        
 
     def has_holes(self):
         ret = False

@@ -35,7 +35,7 @@ for ctr in range(len(descriptions)):
 
 def add_section(out, wktvalue, dim):
     geom = wkt.loads(wktvalue)
-    coll = cf.from_shapely(geom.geom_type, geom)
+    coll = cf.from_shapely(geom)
     append(out, '## {0} ({1})'.format(descriptions[wktkey]['msg'], dim.upper()))
     append(out, 'Well-Known Text (WKT): ```{}```'.format(wktvalue))
     append(out, '')

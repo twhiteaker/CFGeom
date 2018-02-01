@@ -16,7 +16,7 @@ from ncsg.exc import NoGeometryContainerVariablesFoundError
 from ncsg.geometry.base import CFGeometryCollection
 
 
-def from_shapely(geom_type, geoms, string_id=None):
+def from_shapely(geoms, string_id=None):
     """
     Create a CF geometry collection from a sequence of geometries.
 
@@ -26,12 +26,17 @@ def from_shapely(geom_type, geoms, string_id=None):
     :return: :class:`~ncsg.CFGeometryCollection`
     """
 
-    geom_type = geom_type.lower()
-    geom_type = geom_type.replace('string', '')  # We use line instead of linestring
+    if not geoms:
+        raise ValueError('No Shapely geometries provided')
 
     # Allow a singleton geometry object to be passed.
     if isinstance(geoms, BaseGeometry):
         geoms = [geoms]
+
+    types = list(set(ncsg_type_from_shapely(g) for g in geoms))
+    if len(types) > 1:
+        raise ValueError('Input geometries must be of the same type')
+    geom_type = types[0]
 
     # Holds each CF geometry.
     cf_geoms = []
@@ -44,7 +49,9 @@ def from_shapely(geom_type, geoms, string_id=None):
         cf_parts = []
         # Allows us to iterate over single-part and multi-part geometries.
         for ctr_part, part in enumerate(_get_geometry_iter_(geom)):
+            # todo: why store ring type if not polygon?
             cf_part = {'ring_type': RingType.OUTER}
+            # todo: check all parts, not just first one
             if ctr_part == 0 and ctr_geom == 0 and part.has_z:
                 has_z = True
 
@@ -94,30 +101,75 @@ def from_shapely(geom_type, geoms, string_id=None):
     return CFGeometryCollection(geom_type, cf_geoms, string_id)
 
 
-def to_shapely(geom_type, cf_geom):
+def ncsg_type_from_shapely(shapely_geom):
+    """
+    Determines matching CF geometry type for a Shapely geometry object.
+
+    :param shapely_geom: Shapely geometry object.
+    :type shapely_geom: :class:`shapely.geometry.base.BaseGeometry`
+    :return: The CF geometry type corresponding to the Shapely geometry object.
+    :rtype: str
+    """
+
+    return shapely_geom.geom_type.lower().replace('multi', '').replace('string', '')
+
+
+def shapely_type_from_ncsg(ncsg_geom_type, cf_geom):
+    """
+    Determines matching Shapely type for a CF geometry.
+
+    :param ncsg_geom_type: Valid values are ``"point"``, ``"line"``, ``"polygon"``.
+    :type ncsg_geom_type: str
+    :param cf_geom: A list of CF geometry parts for a single geometry. Each item in
+     the list is a dictionary with one-dimensional coordinate arrays ``x``,
+     ``y``, and optionally ``z``, and an integer ``ring_type``.
+    :type cf_geom: List
+    :return: The Shapely geometry type corresponding to the CF geometry.
+    :rtype: str
+    """
+
+    ncsg_geom_type = ncsg_geom_type.lower()
+    if ncsg_geom_type == 'polygon':
+        cf_geom = [p for p in cf_geom
+                   if 'ring_type' in p and p['ring_type'] == RingType.OUTER]
+    if len(cf_geom) > 1:
+        shapely_type = 'multi' + ncsg_geom_type
+    else:
+        shapely_type = ncsg_geom_type
+    return shapely_type
+
+
+def to_shapely(ncsg_geom_type, cf_geom, shapely_geom_type=None):
     """
     Load a Shapely geometry object from its CF representation.
 
-    :param geom_type: The destination geometry type. Valid values are ``"point"``, ``"line"``, ``"polygon"``, and
-     multipart types `"multipoint"``, ``"multiline"``, ``"multipolygon"``.
-    :type geom_type: str
+    :param ncsg_geom_type: The input CF geometry type. Valid values are
+     ``"point"``, ``"line"``, ``"polygon"``.
+    :type ncsg_geom_type: str
     :param cf_geom: A list of CF geometry parts for a single geometry. Each item in
      the list is a dictionary with one-dimensional coordinate arrays ``x``,
-     ``y``, and optionally ``z``. and an integer ``ring_type``.
+     ``y``, and optionally ``z``, and an integer ``ring_type``.
     :type cf_geom: List
+    :param shapely_geom_type: The desired shapely geometry type. Valid values
+     are ``"point"``, ``"line"``, ``"polygon"``, ``"multipoint"``,
+     ``"multiline"``, ``"multipolygon"``
+    :type shapely_geom_type: str
     :return: The Shapely object representing the geometry.
     :rtype: :class:`shapely.geometry.base.BaseGeometry`
     :raises: ValueError
     """
 
-    geom_type = geom_type.lower()
-    shapely_type = NCSG_GEOM_OBJECT_MAP[geom_type]
+    ncsg_geom_type = ncsg_geom_type.lower()
+    if not shapely_geom_type:
+        shapely_geom_type = shapely_type_from_ncsg(ncsg_geom_type, cf_geom)
+    shapely_type = NCSG_GEOM_OBJECT_MAP[shapely_geom_type.lower()]
 
-    if 'polygon' in geom_type:
+    if 'polygon' in shapely_geom_type:
         single_type = NCSG_GEOM_OBJECT_MAP['polygon']
         holes = []
         polygons = []
         exterior = None
+        # todo: catch when no geoms present
         for part in cf_geom:
             part_coords = _extract_geom_part_coordinates(part)
             if 'ring_type' in part and part['ring_type'] == RingType.INNER:
@@ -135,13 +187,13 @@ def to_shapely(geom_type, cf_geom):
         polygon = single_type(exterior, holes)
         polygons.append(polygon)
         # Create final geometry
-        if geom_type.startswith('multi'):
+        if shapely_geom_type.startswith('multi'):
             ret = shapely_type(polygons)
         else:
             ret = polygons[0]
     else:
         coords = [_extract_geom_part_coordinates(part) for part in cf_geom]
-        if len(coords) == 1 and not geom_type.startswith('multi'):
+        if len(coords) == 1 and not shapely_geom_type.startswith('multi'):
             coords = coords[0]
         ret = shapely_type(coords)
         
@@ -217,7 +269,7 @@ def loads_from_netcdf(path_or_object, target=None):
             part_node_counts = _get_geom_aux_variable_(GeneralAttributes.PART_NODE_COUNT, geom_var, ds)
 
             if _is_vlen_(geom_var, ds):
-                is_multipoint = geom_type == 'multipoint'
+                is_multipoint = (geom_type == 'point')# and hasattr(x[0], '__len__'))
                 geoms = _geoms_from_vlen_(x, y, z, ring_types, part_node_counts, is_multipoint)
             else:
                 geoms = _geoms_from_cra_(x, y, z, ring_types, node_counts, part_node_counts)
