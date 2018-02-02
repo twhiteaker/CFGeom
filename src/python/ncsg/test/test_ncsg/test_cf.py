@@ -22,10 +22,6 @@ class Test(AbstractNCSGTest):
                 path = self.get_temporary_file_path('{}_{}.nc'.format(dim, geom_type))
                 coll.write_netcdf(path)
                 loaded_coll = loads_from_netcdf(path)[0]
-                print '\n\n   ---   from wkt'
-                print geom
-                print '\n\n   ---   from nc'
-                print loaded_coll.as_shapely()[0]
                 self.assertTrue(geom.almost_equals(loaded_coll.as_shapely()[0]))
                 self.assertTrue(coll.as_shapely()[0].almost_equals(loaded_coll.as_shapely()[0]))
                 self.assertEqual(loaded_coll, coll)
