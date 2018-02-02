@@ -90,3 +90,4 @@ ENV/
 
 # Mac OS
 .DS_Store
+src/python/ncsg/.pytest_cache/v/cache/lastfailed

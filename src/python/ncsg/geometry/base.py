@@ -52,6 +52,9 @@ class CFGeometryCollection(AbstractNCSGObject):
 
 
     def __eq__(self, other):
+        if type(other) is not type(self):
+            return False
+
         ret = True
         for k, v in self.__dict__.items():
             ov = other.__dict__[k]
@@ -75,6 +78,11 @@ class CFGeometryCollection(AbstractNCSGObject):
             except AssertionError as _:
                 ret = False
         return ret
+
+
+    def __ne__(self, other):
+        """Overrides the default implementation (unnecessary in Python 3)"""
+        return not self.__eq__(other)
 
 
     def as_shapely(self):
