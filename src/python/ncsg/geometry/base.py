@@ -55,6 +55,8 @@ class CFGeometryCollection(AbstractNCSGObject):
         if type(other) is not type(self):
             return False
 
+        is_poly = 'polygon' in self.geom_type
+    
         ret = True
         for k, v in self.__dict__.items():
             ov = other.__dict__[k]
@@ -70,7 +72,7 @@ class CFGeometryCollection(AbstractNCSGObject):
                             _assert_array_equal_(part['x'], o_part['x'])
                             _assert_array_equal_(part['y'], o_part['y'])
                             _assert_array_equal_(part['z'], o_part['z'])
-                            if part['ring_type'] != o_part['ring_type']:
+                            if is_poly and part['ring_type'] != o_part['ring_type']:
                                 raise AssertionError('Ring types are not equal.')
                 else:
                     if v != ov:
