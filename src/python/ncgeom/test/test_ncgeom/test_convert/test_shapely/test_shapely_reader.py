@@ -3,9 +3,9 @@ from shapely import wkt
 from shapely.geometry import Point, LineString
 from shapely.geometry.polygon import orient
 
-from ncgeom import GeometryContainer
-from ncgeom.test.base import AbstractNcgeomTest
-from ncgeom.convert.shapely_io.shapely_reader import shapely_to_container
+from ..... import GeometryContainer
+from ..... convert.shapely_io.shapely_reader import shapely_to_container
+from .... base import AbstractNcgeomTest
 
 
 class TestShapelyReader(AbstractNcgeomTest):

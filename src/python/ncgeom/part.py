@@ -1,7 +1,7 @@
 from decimal import Decimal
 import numbers
 
-from ncgeom.util import is_iterable
+from . util import is_iterable
 
 
 def _as_number(obj):

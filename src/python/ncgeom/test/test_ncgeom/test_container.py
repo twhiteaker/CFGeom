@@ -1,7 +1,7 @@
 import pytest
 
-from ncgeom import GeometryContainer, Geometry, Part
-from ncgeom.test.base import AbstractNcgeomTest
+from ... import GeometryContainer, Geometry, Part
+from .. base import AbstractNcgeomTest
 
 
 point = Geometry('point', Part([10], [0]))

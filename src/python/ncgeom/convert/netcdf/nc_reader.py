@@ -1,9 +1,9 @@
 from netCDF4 import Dataset
 import numpy as np
 
-from ncgeom.container import GeometryContainer
-from ncgeom.geometry import Geometry
-from ncgeom.part import Part
+from ... container import GeometryContainer
+from ... geometry import Geometry
+from ... part import Part
 from nc_constants import (
     Attrs,
     RingType,

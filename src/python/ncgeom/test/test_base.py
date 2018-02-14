@@ -1,7 +1,7 @@
 from shapely import wkt
 from shapely.geometry.base import BaseGeometry
 
-from ncgeom.test.base import AbstractNcgeomTest
+from . base import AbstractNcgeomTest
 
 
 class TestFixtures(AbstractNcgeomTest):

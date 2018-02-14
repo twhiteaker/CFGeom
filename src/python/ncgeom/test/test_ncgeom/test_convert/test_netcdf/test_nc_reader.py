@@ -4,8 +4,8 @@ from os.path import join
 
 import pytest
 
-from ncgeom.test.base import AbstractNcgeomTest
-from ncgeom.convert.netcdf.nc_reader import read_netcdf
+from .... base import AbstractNcgeomTest
+from ..... convert.netcdf.nc_reader import read_netcdf
 
 
 class TestReadNetcdf(AbstractNcgeomTest):

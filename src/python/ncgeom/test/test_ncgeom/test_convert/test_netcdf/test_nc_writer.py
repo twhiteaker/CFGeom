@@ -1,9 +1,9 @@
 import pytest
 from netCDF4 import Dataset
 
-from ncgeom import GeometryContainer, Geometry, Part
-from ncgeom.test.base import AbstractNcgeomTest
-from ncgeom.convert.netcdf.nc_writer import write_netcdf
+from ..... import GeometryContainer, Geometry, Part
+from ..... convert.netcdf.nc_writer import write_netcdf
+from .... base import AbstractNcgeomTest
 
 
 point = Geometry('point', Part([10], [0]))

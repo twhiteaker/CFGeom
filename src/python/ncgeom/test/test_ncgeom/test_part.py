@@ -1,8 +1,8 @@
 import numpy as np
 import pytest
 
-from ncgeom.part import Part, _compute_area, _is_clockwise
-from ncgeom.test.base import AbstractNcgeomTest
+from ... part import Part, _compute_area, _is_clockwise
+from .. base import AbstractNcgeomTest
 
 
 class TestInit(AbstractNcgeomTest):

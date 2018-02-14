@@ -1,8 +1,8 @@
 import json
 
-from ncgeom.container import GeometryContainer
-from ncgeom.geometry import Geometry
-from ncgeom.part import Part
+from ... container import GeometryContainer
+from ... geometry import Geometry
+from ... part import Part
 
 
 def json_to_part(json_string):

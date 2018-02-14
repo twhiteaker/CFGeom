@@ -1,9 +1,9 @@
 import numpy as np
 from shapely.geometry.base import BaseGeometry, BaseMultipartGeometry
 
-from ncgeom.container import GeometryContainer
-from ncgeom.geometry import Geometry
-from ncgeom.part import Part
+from ... container import GeometryContainer
+from ... geometry import Geometry
+from ... part import Part
 
 
 _geom_map = {'Point': 'point',

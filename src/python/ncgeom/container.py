@@ -1,8 +1,8 @@
-from ncgeom.util import is_iterable, as_iterable
-from ncgeom.geometry import Geometry
-from ncgeom.convert.json_io.json_writer import container_to_json
-from ncgeom.convert.netcdf.nc_writer import write_netcdf
-from ncgeom.convert.shapely_io.shapely_writer import geom_to_shapely as to_shp
+from . util import is_iterable, as_iterable
+from . geometry import Geometry
+from . convert.json_io.json_writer import container_to_json
+from . convert.netcdf.nc_writer import write_netcdf
+from . convert.shapely_io.shapely_writer import geom_to_shapely as to_shp
 
 
 class GeometryContainer(object):

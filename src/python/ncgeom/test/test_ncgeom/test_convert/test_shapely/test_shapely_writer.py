@@ -2,9 +2,9 @@ import pytest
 from shapely import wkt
 from shapely.geometry import Point, MultiPoint, LineString
 
-from ncgeom import GeometryContainer, Geometry, Part
-from ncgeom.test.base import AbstractNcgeomTest
-from ncgeom.convert.shapely_io.shapely_writer import geom_to_shapely
+from ..... import GeometryContainer, Geometry, Part
+from ..... convert.shapely_io.shapely_writer import geom_to_shapely
+from .... base import AbstractNcgeomTest
 
 
 class TestShapelyWriter(AbstractNcgeomTest):
