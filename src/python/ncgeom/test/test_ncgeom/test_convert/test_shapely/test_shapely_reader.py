@@ -5,7 +5,7 @@ from shapely.geometry.polygon import orient
 
 from ncgeom import GeometryContainer
 from ncgeom.test.base import AbstractNcgeomTest
-from ncgeom.io.shapely_io.shapely_reader import shapely_to_container
+from ncgeom.convert.shapely_io.shapely_reader import shapely_to_container
 
 
 class TestShapelyReader(AbstractNcgeomTest):

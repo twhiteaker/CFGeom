@@ -3,7 +3,7 @@ from netCDF4 import Dataset
 
 from ncgeom import GeometryContainer, Geometry, Part
 from ncgeom.test.base import AbstractNcgeomTest
-from ncgeom.io.netcdf.nc_writer import write_netcdf
+from ncgeom.convert.netcdf.nc_writer import write_netcdf
 
 
 point = Geometry('point', Part([10], [0]))

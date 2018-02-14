@@ -1,6 +1,6 @@
 from ncgeom.util import is_iterable, as_iterable
 from ncgeom.part import Part
-from ncgeom.io.shapely_io.shapely_writer import geom_to_shapely as to_shp
+from ncgeom.convert.shapely_io.shapely_writer import geom_to_shapely as to_shp
 
 
 class Geometry(object):

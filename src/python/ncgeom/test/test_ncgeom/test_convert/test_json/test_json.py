@@ -4,8 +4,8 @@ from os.path import join
 import pytest
 
 from ncgeom.test.base import AbstractNcgeomTest
-from ncgeom.io.json_io.json_reader import json_to_container
-from ncgeom.io.json_io.json_writer import container_to_json
+from ncgeom.convert.json_io.json_reader import json_to_container
+from ncgeom.convert.json_io.json_writer import container_to_json
 
 
 
