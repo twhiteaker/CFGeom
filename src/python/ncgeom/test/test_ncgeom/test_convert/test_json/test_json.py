@@ -1,3 +1,4 @@
+import json
 import os
 from os.path import join
 
@@ -16,7 +17,9 @@ class TestJson(AbstractNcgeomTest):
         with open(filename) as f:
             data = f.read()
         container = json_to_container(data)
-        self.assertEqual(container.to_json(), data)
+        expected = json.loads(data)
+        actual = json.loads(container.to_json())
+        self.assertEqual(expected, actual)
 
 
     def test_point_z(self):
