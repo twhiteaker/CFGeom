@@ -1,0 +1,34 @@
+netcdf multiline_cra {
+dimensions:
+	instance = 2 ;
+	node = 7 ;
+	part = 3 ;
+variables:
+	int geometry_container ;
+		geometry_container:geometry_type = "line" ;
+		geometry_container:node_coordinates = "x y" ;
+		geometry_container:node_count = "node_count" ;
+		geometry_container:part_node_count = "part_node_count" ;
+	double x(node) ;
+		x:axis = "X" ;
+	double y(node) ;
+		y:axis = "Y" ;
+	int node_count(instance) ;
+		node_count:long_name = "count of coordinates in each instance geometry" ;
+	int part_node_count(part) ;
+		part_node_count:long_name = "count of nodes in each geometry part" ;
+
+// global attributes:
+		:Conventions = "CF-1.8" ;
+data:
+
+ geometry_container = _ ;
+
+ x = 3, 1, 4, 1, 2, 4, 3 ;
+
+ y = 1, 3, 4, 2, 4, 3, 2 ;
+
+ node_count = 3, 4 ;
+
+ part_node_count = 3, 2, 2 ;
+}

@@ -1,0 +1,28 @@
+netcdf line_z_vlen {
+types:
+  double(*) node_VLType ;
+dimensions:
+	instance = 2 ;
+variables:
+	int geometry_container ;
+		geometry_container:geometry_type = "line" ;
+		geometry_container:node_coordinates = "x y z" ;
+	node_VLType x(instance) ;
+		x:axis = "X" ;
+	node_VLType y(instance) ;
+		y:axis = "Y" ;
+	node_VLType z(instance) ;
+		z:axis = "Z" ;
+
+// global attributes:
+		:Conventions = "CF-1.8" ;
+data:
+
+ geometry_container = _ ;
+
+ x = {3, 1, 4}, {7, 8} ;
+
+ y = {1, 3, 4}, {9, 10} ;
+
+ z = {NaN, NaN, NaN}, {90, 100} ;
+}

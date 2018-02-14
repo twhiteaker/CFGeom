@@ -12,14 +12,15 @@ import numpy as np
 from shapely.geometry import shape
 
 sys.path.append(os.path.abspath('../src/python'))
-from ncsg import cf
+from ncgeom import read_shapely
+from ncgeom.io.netcdf.nc_names import NcNames
 
 CATCHMENTS = '../data/use_cases/Bull_Creek/nhd_catchment.json'
 FLOWLINES = '../data/use_cases/Bull_Creek/nhd_flowline.json'
 UPSTREAM_POINTS = '../data/use_cases/Bull_Creek/upstream_point.json'
 IN = '../data/use_cases/Bull_Creek/bull_creek_streamflow.cdl'
-OUT_VLEN = '../misc/tmp/bull_creek_NCSG_VLEN.nc'
-OUT_CRA = '../misc/tmp/bull_creek_NCSG_CRA.nc'
+OUT_VLEN = '../misc/tmp/bull_creek_with_geom_VLEN.nc'
+OUT_CRA = '../misc/tmp/bull_creek_with_geom_CRA.nc'
 CATCHMENTS_SID = 'catchments_'
 FLOWLINES_SID = 'flowlines_'
 UPSTREAM_SID = 'upstream_'
@@ -45,7 +46,7 @@ def ncdump(src):
     return str(subprocess.check_output(cmd, shell=shell))
     
 
-def get_cf_geometry_collection(path_src, cf_geom_type, string_id, comids):
+def get_cf_geometry_collection(path_src, string_id, comids):
     """Returns geometries and properties from GeoJSON sorted by COMID."""
     properties = OrderedDict()
     features = {}  # indexes features by COMID
@@ -73,14 +74,15 @@ def get_cf_geometry_collection(path_src, cf_geom_type, string_id, comids):
         geoms.append(geom)
         for pk, pv in props.items():
             properties[pk].append(pv)
-    cf_geom = cf.from_shapely(cf_geom_type, geoms, string_id=string_id)
+    print string_id
+    cf_geom = read_shapely(geoms)
     return cf_geom, properties
 
 
-def write_collection(coll, coll_properties, cra, nc):
-    coll.cf_names['dimensions']['geometry_count'] = INSTANCE_DIM
-    coll.write_netcdf(nc, cra=cra)
-    string_id = coll.string_id
+def write_collection(coll, nc_names, coll_properties, cra, nc):
+    nc_names.instance_dim = INSTANCE_DIM
+    coll.to_netcdf(nc, nc_names=nc_names, use_vlen=(not cra))
+    string_id = nc_names.x_var[:(nc_names.x_var.find('_') + 1)]
     for pk, pv in coll_properties.items():
         vname = '{}{}'.format(string_id, pk)
         try:
@@ -126,22 +128,26 @@ def main():
     with Dataset(OUT_CRA, 'r') as nc:
         comids = nc.variables[INSTANCE_DIM][:]
     cf_lines, line_props = get_cf_geometry_collection(
-        FLOWLINES, 'line', FLOWLINES_SID, comids)
+        FLOWLINES, FLOWLINES_SID, comids)
     cf_polys, poly_props = get_cf_geometry_collection(
-        CATCHMENTS, 'multipolygon', CATCHMENTS_SID, comids)
+        CATCHMENTS, CATCHMENTS_SID, comids)
 
     # Copy data into a file which uses the enhanced data model (for VLEN)
     copy_nc(OUT_CRA, OUT_VLEN)
 
-    # Process both VLEN and CRA    
+    # Set netCDF dim and variable names for lines and polygons
+    line_names = NcNames()
+    line_names.set_prefix('flowlines_')
+    poly_names = NcNames()
+    poly_names.set_prefix('catchments_')
+
+    # Process both VLEN and CRA
     for out_path, is_cra in zip([OUT_VLEN, OUT_CRA], [False, True]):    
         with Dataset(out_path, 'a') as nc:
-            geom_var_name = cf_lines.cf_names['variables']['geometry_container']
-            write_collection(cf_lines, line_props, is_cra, nc)
+            geom_var_name = line_names.container_var
+            write_collection(cf_lines, line_names, line_props, is_cra, nc)
             nc.variables['streamflow'].geometry = geom_var_name
-            nc.variables['lat'].geometry = geom_var_name
-            nc.variables['lon'].geometry = geom_var_name
-            write_collection(cf_polys, poly_props, is_cra, nc)
+            write_collection(cf_polys, poly_names, poly_props, is_cra, nc)
         ncdump(out_path)
 
 

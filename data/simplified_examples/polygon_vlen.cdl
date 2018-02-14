@@ -1,0 +1,24 @@
+netcdf polygon_vlen {
+types:
+  double(*) node_VLType ;
+dimensions:
+	instance = 2 ;
+variables:
+	int geometry_container ;
+		geometry_container:geometry_type = "polygon" ;
+		geometry_container:node_coordinates = "x y" ;
+	node_VLType x(instance) ;
+		x:axis = "X" ;
+	node_VLType y(instance) ;
+		y:axis = "Y" ;
+
+// global attributes:
+		:Conventions = "CF-1.8" ;
+data:
+
+ geometry_container = _ ;
+
+ x = {10, 5, 0}, {20, 15, 11, 15} ;
+
+ y = {0, 5, 0}, {20, 25, 20, 15} ;
+}

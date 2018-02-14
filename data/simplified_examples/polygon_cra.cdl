@@ -1,0 +1,28 @@
+netcdf polygon_cra {
+dimensions:
+	instance = 2 ;
+	node = 7 ;
+variables:
+	int geometry_container ;
+		geometry_container:geometry_type = "polygon" ;
+		geometry_container:node_coordinates = "x y" ;
+		geometry_container:node_count = "node_count" ;
+	double x(node) ;
+		x:axis = "X" ;
+	double y(node) ;
+		y:axis = "Y" ;
+	int node_count(instance) ;
+		node_count:long_name = "count of coordinates in each instance geometry" ;
+
+// global attributes:
+		:Conventions = "CF-1.8" ;
+data:
+
+ geometry_container = _ ;
+
+ x = 10, 5, 0, 20, 15, 11, 15 ;
+
+ y = 0, 5, 0, 20, 25, 20, 15 ;
+
+ node_count = 3, 4 ;
+}

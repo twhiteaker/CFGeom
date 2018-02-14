@@ -1,0 +1,57 @@
+{
+    "_has_hole": false, 
+    "_has_z": false, 
+    "_is_multipart": false, 
+    "_wkt_type": "Polygon", 
+    "geom_type": "polygon", 
+    "geoms": [
+        {
+            "_has_hole": false, 
+            "_has_z": false, 
+            "_is_multipart": false, 
+            "geom_type": "polygon", 
+            "parts": [
+                {
+                    "_is_clockwise": false, 
+                    "is_hole": false, 
+                    "x": [
+                        10, 
+                        5, 
+                        0
+                    ], 
+                    "y": [
+                        0, 
+                        5, 
+                        0
+                    ], 
+                    "z": []
+                }
+            ]
+        }, 
+        {
+            "_has_hole": false, 
+            "_has_z": false, 
+            "_is_multipart": false, 
+            "geom_type": "polygon", 
+            "parts": [
+                {
+                    "_is_clockwise": false, 
+                    "is_hole": false, 
+                    "x": [
+                        20, 
+                        15, 
+                        11, 
+                        15
+                    ], 
+                    "y": [
+                        20, 
+                        25, 
+                        20, 
+                        15
+                    ], 
+                    "z": []
+                }
+            ]
+        }
+    ]
+}

@@ -1,0 +1,28 @@
+netcdf multipoint_cra {
+dimensions:
+	instance = 2 ;
+	node = 3 ;
+variables:
+	int geometry_container ;
+		geometry_container:geometry_type = "point" ;
+		geometry_container:node_coordinates = "x y" ;
+		geometry_container:node_count = "node_count" ;
+	double x(node) ;
+		x:axis = "X" ;
+	double y(node) ;
+		y:axis = "Y" ;
+	int node_count(instance) ;
+		node_count:long_name = "count of coordinates in each instance geometry" ;
+
+// global attributes:
+		:Conventions = "CF-1.8" ;
+data:
+
+ geometry_container = _ ;
+
+ x = 1, 1, 4 ;
+
+ y = 1, 4, 3 ;
+
+ node_count = 1, 2 ;
+}

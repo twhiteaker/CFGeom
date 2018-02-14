@@ -1,0 +1,87 @@
+{
+    "_has_hole": true, 
+    "_has_z": false, 
+    "_is_multipart": true, 
+    "_wkt_type": "MultiPolygon", 
+    "geom_type": "polygon", 
+    "geoms": [
+        {
+            "_has_hole": false, 
+            "_has_z": false, 
+            "_is_multipart": false, 
+            "geom_type": "polygon", 
+            "parts": [
+                {
+                    "_is_clockwise": false, 
+                    "is_hole": false, 
+                    "x": [
+                        100, 
+                        75, 
+                        50
+                    ], 
+                    "y": [
+                        100, 
+                        500, 
+                        100
+                    ], 
+                    "z": []
+                }
+            ]
+        }, 
+        {
+            "_has_hole": true, 
+            "_has_z": false, 
+            "_is_multipart": true, 
+            "geom_type": "polygon", 
+            "parts": [
+                {
+                    "_is_clockwise": false, 
+                    "is_hole": false, 
+                    "x": [
+                        10, 
+                        5, 
+                        0
+                    ], 
+                    "y": [
+                        0, 
+                        5, 
+                        0
+                    ], 
+                    "z": []
+                }, 
+                {
+                    "_is_clockwise": true, 
+                    "is_hole": true, 
+                    "x": [
+                        1, 
+                        5, 
+                        9
+                    ], 
+                    "y": [
+                        1, 
+                        4, 
+                        1
+                    ], 
+                    "z": []
+                }, 
+                {
+                    "_is_clockwise": false, 
+                    "is_hole": false, 
+                    "x": [
+                        20, 
+                        15, 
+                        11, 
+                        15
+                    ], 
+                    "y": [
+                        20, 
+                        25, 
+                        20, 
+                        15
+                    ], 
+                    "z": []
+                }
+            ]
+        }
+    ]
+}

@@ -1,0 +1,58 @@
+{
+    "_has_hole": false, 
+    "_has_z": false, 
+    "_is_multipart": true, 
+    "_wkt_type": "MultiPoint", 
+    "geom_type": "point", 
+    "geoms": [
+        {
+            "_has_hole": false, 
+            "_has_z": false, 
+            "_is_multipart": false, 
+            "geom_type": "point", 
+            "parts": [
+                {
+                    "_is_clockwise": false, 
+                    "is_hole": false, 
+                    "x": [
+                        1
+                    ], 
+                    "y": [
+                        1
+                    ], 
+                    "z": []
+                }
+            ]
+        }, 
+        {
+            "_has_hole": false, 
+            "_has_z": false, 
+            "_is_multipart": true, 
+            "geom_type": "point", 
+            "parts": [
+                {
+                    "_is_clockwise": false, 
+                    "is_hole": false, 
+                    "x": [
+                        1
+                    ], 
+                    "y": [
+                        4
+                    ], 
+                    "z": []
+                }, 
+                {
+                    "_is_clockwise": false, 
+                    "is_hole": false, 
+                    "x": [
+                        4
+                    ], 
+                    "y": [
+                        3
+                    ], 
+                    "z": []
+                }
+            ]
+        }
+    ]
+}

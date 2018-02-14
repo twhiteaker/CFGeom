@@ -1,0 +1,66 @@
+{
+    "_has_hole": false, 
+    "_has_z": false, 
+    "_is_multipart": true, 
+    "_wkt_type": "MultiLineString", 
+    "geom_type": "line", 
+    "geoms": [
+        {
+            "_has_hole": false, 
+            "_has_z": false, 
+            "_is_multipart": false, 
+            "geom_type": "line", 
+            "parts": [
+                {
+                    "_is_clockwise": true, 
+                    "is_hole": false, 
+                    "x": [
+                        3, 
+                        1, 
+                        4
+                    ], 
+                    "y": [
+                        1, 
+                        3, 
+                        4
+                    ], 
+                    "z": []
+                }
+            ]
+        }, 
+        {
+            "_has_hole": false, 
+            "_has_z": false, 
+            "_is_multipart": true, 
+            "geom_type": "line", 
+            "parts": [
+                {
+                    "_is_clockwise": false, 
+                    "is_hole": false, 
+                    "x": [
+                        1, 
+                        2
+                    ], 
+                    "y": [
+                        2, 
+                        4
+                    ], 
+                    "z": []
+                }, 
+                {
+                    "_is_clockwise": false, 
+                    "is_hole": false, 
+                    "x": [
+                        4, 
+                        3
+                    ], 
+                    "y": [
+                        3, 
+                        2
+                    ], 
+                    "z": []
+                }
+            ]
+        }
+    ]
+}

@@ -89,12 +89,10 @@ variables:
     lat:units = "degrees_north" ;
     lat:standard_name = "latitude" ;
     lat:geometry = "geometry_container" ;
-    lat:axis = "Y" ;
   double lon(instance) ;
     lon:units = "degrees_east" ;
     lon:standard_name = "longitude" ;
     lon:geometry = "geometry_container" ;
-    lon:axis = "X" ;
   float geometry_container ;
     geometry_container:geometry_type = "polygon" ;
     geometry_container:node_count = "node_count" ;  // variable counting nodes per feature
