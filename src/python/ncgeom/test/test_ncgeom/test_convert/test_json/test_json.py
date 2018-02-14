@@ -10,13 +10,35 @@ from ..... convert.json_io.json_writer import container_to_json
 
 
 class TestJson(AbstractNcgeomTest):
-    def test_round_trip(self):
+    def compare_from_file(self, json_file):
         root = join(self.path_data, 'simplified_examples')
-        files = [join(root, f) for f in os.listdir(root)
-                 if f.endswith('.json')]
-        for json_file in files:
-            with open(json_file) as f:
-                data = f.read()
-            container = json_to_container(data)
-            self.assertEqual(container.to_json(), data)
+        filename = join(root, json_file)
+        with open(filename) as f:
+            data = f.read()
+        container = json_to_container(data)
+        self.assertEqual(container.to_json(), data)
 
+
+    def test_point_z(self):
+        self.compare_from_file('point_z.json')
+
+    def test_multipoint(self):
+        self.compare_from_file('multipoint.json')
+
+    def test_line(self):
+        self.compare_from_file('line.json')
+
+    def test_line_z(self):
+        self.compare_from_file('line_z.json')
+
+    def test_multiline(self):
+        self.compare_from_file('multiline.json')
+
+    def test_polygon(self):
+        self.compare_from_file('polygon.json')
+
+    def test_polygon_hole(self):
+        self.compare_from_file('polygon_hole.json')
+
+    def test_multipolygon(self):
+        self.compare_from_file('multipolygon.json')
