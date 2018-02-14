@@ -4,7 +4,7 @@ import numpy as np
 from ... container import GeometryContainer
 from ... geometry import Geometry
 from ... part import Part
-from nc_constants import (
+from . nc_constants import (
     Attrs,
     RingType,
     )

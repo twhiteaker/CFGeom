@@ -1,8 +1,8 @@
 from netCDF4 import Dataset
 import numpy as np
 
-from nc_names import NcNames
-from nc_constants import (
+from . nc_names import NcNames
+from . nc_constants import (
     Attrs,
     RingType,
     )
