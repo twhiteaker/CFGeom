@@ -1,3 +1,5 @@
+"""Converts from shapely geometries to GeometryContainer objects."""
+
 import numpy as np
 from shapely.geometry.base import BaseGeometry, BaseMultipartGeometry
 
@@ -12,9 +14,23 @@ _geom_map = {'Point': 'point',
              'MultiLineString': 'line',
              'Polygon': 'polygon',
              'MultiPolygon': 'polygon'}
+"""dict: Maps from shapely geometry types to CF types."""
 
 
 def _get_geometry_iter(geom):
+    """Gets an iterable of geometries from an input geometry.
+
+    Multipart geometries in shapely are iterable, but single-part geometries
+    are not. If a single-part geometry is provided, it is returned within a
+    list to support iteration.
+
+    Args:
+        geom (shapely.geometry.BaseGeometry): Shapely geometry object.
+
+    Returns:
+        array-like(shapely.geometry.BaseGeometry): Iterable of geometries.
+
+    """
     if isinstance(geom, BaseMultipartGeometry):
         ret = geom
     else:
@@ -23,6 +39,18 @@ def _get_geometry_iter(geom):
 
 
 def _get_coordinates_as_list(coords, column_index):
+    """Returns a list of X, Y, or Z values from shapely geometry coordinates.
+
+    Args:
+        coords (array-like): Shapely geometry coordinates, where each
+            coordinate is a tuple of x, y, and z values (if present).
+        column_index (int): Column to extract from the coordinates. X, Y, and Z
+            values are in columns 0, 1, and 2, respectively.
+
+    Returns:
+        array-like(float): List of geometry coordinate values.
+
+    """
     try:
         ret = coords[:, column_index].tolist()
     except IndexError:
@@ -35,6 +63,18 @@ def _get_coordinates_as_list(coords, column_index):
 
 
 def _shapely_coords_to_part(coords, has_z, is_hole=False):
+    """Converts shapely coordinates to a geometry Part instance.
+
+    Args:
+        coords (array-like): Shapely geometry coordinates, where each
+        coordinate is a tuple of x, y, and z values (if present).
+        has_z (bool): True if coordinates include Z values, False otherwise.
+        is_hole (bool): True if the geometry part is a polygon interior ring.
+
+    Returns:
+        Part: Part instance.
+
+    """
     x = _get_coordinates_as_list(coords, 0)
     y = _get_coordinates_as_list(coords, 1)
     if has_z:
@@ -45,6 +85,15 @@ def _shapely_coords_to_part(coords, has_z, is_hole=False):
 
 
 def shapely_to_geom(shape):
+    """Converts shapely geometry to a Geometry instance.
+
+    Args:
+        shape (shapely.geometry.BaseGeometry): Shapely geometry object.
+
+    Returns:
+        Geometry: Geometry instance.
+
+    """
     cf_parts = []
     geom_type = _geom_map[shape.geom_type]
     for ctr_part, part in enumerate(_get_geometry_iter(shape)):
@@ -69,6 +118,16 @@ def shapely_to_geom(shape):
 
 
 def shapely_to_container(geoms):
+    """Converts list of shapely geometries to a GeometryContainer instance.
+
+    Args:
+        geoms (array-like(shapely.geometry.BaseGeometry)): Shapely geometry
+            object or objects.
+
+    Returns:
+        GeometryContainer: GeometryContainer instance.
+
+    """
     if not geoms:
         raise ValueError('No Shapely geometries provided')
 

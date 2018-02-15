@@ -1,3 +1,5 @@
+"""Handles writing data to netCDF format."""
+
 from netCDF4 import Dataset
 import numpy as np
 
@@ -9,6 +11,21 @@ from . nc_constants import (
 
 
 def _to_cra_arrays(geom_container):
+    """Exports contiguous ragged arrays from a geometry container.
+
+    Args:
+        geom_container (GeometryContainer): The geometry container.
+
+    Returns:
+        Tuple of one-dimensional arrays representing:
+            x coordinates
+            y coordinates
+            z coordinates
+            node counts per geometry
+            node counts per geometry part
+            ring type for each geometry part
+
+    """
     x = []
     y = []
     ring_type = []
@@ -42,6 +59,28 @@ def _to_cra_arrays(geom_container):
 
 
 def _to_vlen_arrays(geom_container):
+    """Exports variable length arrays from a geometry container.
+
+    Args:
+        geom_container (GeometryContainer): The geometry container.
+
+    Returns:
+        Tuple of arrays representing:
+            x coordinates
+            y coordinates
+            z coordinates
+            node counts per geometry part
+            ring type for each geometry part
+
+        The elements of each array may have variable length. For example,
+        for a multiline geometry with two parts, x values could be::
+        
+            x = [[1, 2, 3, 4],
+                 [9, 8, 7, 6]]
+
+        If no z values are found, None is returned for the z array.
+
+    """
     geom_cnt = len(geom_container.geoms)
     x = np.zeros(geom_cnt, dtype=object)
     y = np.zeros(geom_cnt, dtype=object)
@@ -81,6 +120,25 @@ def _to_vlen_arrays(geom_container):
 
 
 def _make_vltype(dataset, base_type, type_name):
+    """Creates a variable length data type in the netCDF file.
+
+    Creates a variable length data type in the netCDF file. If a compatible
+    data type of the same name already exists, it is returned.
+
+    Args:
+        dataset (netCDF4.Dataset): The netCDF file object.
+        base_type (numpy.dtype): The base data type for the VLType.
+        type_name (str): The name for the VLType.
+
+    Returns:
+        VLType: The VLType class instance describing the datatype.
+
+    Raises:
+        ValueError: If input netCDF file doesn't use a data model supporting
+            VLTypes, or if the VLType already exists but is of a different
+            base type than what was provided.
+
+    """
     if dataset.data_model != 'NETCDF4':
         raise ValueError('Input netCDF dataset must use NETCDF4 data model to '
                          'support VLEN types. Current data model: {}'.format(
@@ -99,6 +157,24 @@ def _make_vltype(dataset, base_type, type_name):
 
 
 def _make_dim(dataset, name, length):
+    """Creates a dimension in the netCDF file.
+
+    Creates a dimension in the netCDF file. If a dimension of the same name
+    with the same length already exists, it is returned.
+
+    Args:
+        dataset (netCDF4.Dataset): The netCDF file object.
+        name (str): The name for the dimension.
+        length (int): The length for the dimension.
+
+    Returns:
+        Dimension: Dimension class instance describing the dimension.
+
+    Raises:
+        ValueError: If the dimension already exists but is of a different
+            length than what was provided.
+
+    """
     if name not in dataset.dimensions:
         dim = dataset.createDimension(name, length)
     else:
@@ -112,6 +188,22 @@ def _make_dim(dataset, name, length):
 
 
 def _make_var(dataset, name, dtype, dim_tuple=None):
+    """Creates a variable in the netCDF file.
+
+    Args:
+        dataset (netCDF4.Dataset): The netCDF file object.
+        name (str): The name for the variable.
+        dtype (numpy.dtype): The data type for the variable.
+        dim_tuple (tuple(str), optional): Tuple of dimension names to use for
+            the variable. Leave as None for scalar variables.
+
+    Returns:
+        Variable: Variable class instance describing the new variable.
+
+    Raises:
+        ValueError: If the variable already exists in the file.
+
+    """
     if dim_tuple is None:
         dim_tuple = ()
     if name not in dataset.variables:
@@ -123,6 +215,18 @@ def _make_var(dataset, name, dtype, dim_tuple=None):
 
 
 def _set_attr(owner, name, value):
+    """Sets an attribute value for a netCDF file or variable.
+
+    Args:
+        owner (Dataset or Variable): The netCDF file or variable.
+        name (str): The name for the attribute.
+        value (object): The value for the attribute.
+
+    Raises:
+        ValueError: If the attribute already exists and has a value different
+        than what was provided.
+
+    """
     if name not in owner.ncattrs():
         setattr(owner, name, value)
     else:
@@ -136,6 +240,20 @@ def _set_attr(owner, name, value):
 
 
 def write_netcdf(geom_container, path_or_object, nc_names=None, use_vlen=False):
+    """Exports a geometry container to a CF-compliant netCDF file.
+
+    Args:
+        geom_container (GeometryContainer): Geometry container object.
+        path_or_object (str or netCDF4.Dataset): Target netCDF file
+            or object.  If the file exists, it is overwritten. Pass a
+            netCDF4.Dataset object to append to an existing file.
+        nc_names (nc_names.NcNames, optional): Object specifying names for
+            types, dimensions, and variables to use in the netCDF file.
+        use_vlen (bool, optional): True if variable length (VLEN) arrays from
+            the netCDF enhanced model should be used for variables such as node
+            coordinate arrays, False otherwise.
+
+    """
     if nc_names is None:
         nc_names = NcNames()
     if geom_container.geom_type == 'polygon':

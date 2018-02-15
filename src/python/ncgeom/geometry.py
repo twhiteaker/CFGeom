@@ -1,13 +1,37 @@
+"""Represents a geometry, such as a point, line, or polygon."""
+
 from . util import is_iterable, as_iterable
 from . part import Part
 from . convert.shapely_io.shapely_writer import geom_to_shapely as to_shp
 
 
-class Geometry(object):
-    _wkt_types = {'point': 'Point', 'line': 'LineString', 'polygon': 'Polygon'}
+_wkt_types = {'point': 'Point', 'line': 'LineString', 'polygon': 'Polygon'}
+"""dict: Maps from geometry types to Well-Known Text (WKT) types."""
 
+
+class Geometry(object):
+    """Contains vertices for a single geometry part.
+
+    Attributes:
+        geom_type (str): Geometry type, eithier point, line, or polygon.
+        parts (array-like(Part)): List of geometry parts.
+
+    """
 
     def __init__(self, geom_type, parts):
+        """Inits Geometry with a geometry type and geometry parts.
+
+        Args:
+            geom_type (str): Geometry type, eithier point, line, or polygon.
+            parts (array-like(Part)): List of geometry parts.
+
+        Raises:
+            ValueError: If geometry type is not point, line, or polygon; or if
+                no Parts are provided, or if node count per part does not work
+                with the provided geometry type, or if first polygon part is a
+                hole.
+
+        """
         geom_type = geom_type.lower()
         if geom_type not in ['point', 'line', 'polygon']:
             raise ValueError('geom_type must be point, line, or polygon')
@@ -34,6 +58,15 @@ class Geometry(object):
 
 
     def has_hole(self):
+        """Determines if the geometry has any polygon holes, i.e., inner rings.
+
+        Note:
+            Only polygons can have holes.
+
+        Returns:
+            bool: True if holes are found, False otherwise.
+
+        """
         if self._has_hole is None:
             self._has_hole = False
             for part in self.parts:
@@ -44,6 +77,12 @@ class Geometry(object):
 
 
     def is_multipart(self):
+        """Determines if the geometry has multiple parts.
+
+        Returns:
+            bool: True if the geometry is multipart, False if single-part.
+
+        """
         if self._is_multipart is None:
             not_holes = [p for p in self.parts if not p.is_hole]
             self._is_multipart = len(not_holes) > 1
@@ -51,6 +90,12 @@ class Geometry(object):
 
 
     def has_z(self):
+        """Determines if the geometry has z values.
+
+        Returns:
+            bool: True if the geometry has z values, False otherwise.
+
+        """
         if self._has_z is None:
             self._has_z = False
             for part in self.parts:
@@ -62,6 +107,18 @@ class Geometry(object):
 
 
     def orient(self, holes_clockwise=True):
+        """Orients polygon exterior and interior rings consistently, in-place.
+
+        Args:
+            holes_clockwise (bool, optional): True if nodes comprising holes
+                should be oriented clockwise while exterior rings are oriented
+                anticlockwise, False if holes should be oriented anticlockwise
+                while exterior rings are oriented clockwise.
+
+        Raises:
+            NotImplementedError: If geometry is not a polygon.
+
+        """
         if self.geom_type != 'polygon':
             raise NotImplementedError('Only polygons can be oriented')
         for part in self.parts:
@@ -75,11 +132,28 @@ class Geometry(object):
 
 
     def wkt_type(self):
+        """Determines the matching Well-Known Text (WKT) type for the geometry.
+
+        Returns:
+            str: The matching WKT type.
+
+        """
         if self.is_multipart():
-            return 'Multi' + self._wkt_types[self.geom_type]
+            return 'Multi' + _wkt_types[self.geom_type]
         else:
-            return self._wkt_types[self.geom_type]
+            return _wkt_types[self.geom_type]
 
 
     def to_shapely(self, shapely_geom_type=None):
+        """Converts the geometry to a shapely object.
+
+        Args:
+            shapely_geom_type (str or shapely.geometry type, optional): The
+                target shapely geometry type. Use this to force a multipart
+                shapely type when the geometry is single-part.
+
+        Returns:
+            shapely.geometry.BaseGeometry: Shapely geometry.
+
+        """
         return to_shp(self, shapely_geom_type)

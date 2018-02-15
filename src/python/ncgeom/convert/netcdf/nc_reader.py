@@ -1,3 +1,5 @@
+"""Handles reading netCDF data into geometry containers."""
+
 from netCDF4 import Dataset
 import numpy as np
 
@@ -11,6 +13,19 @@ from . nc_constants import (
 
 
 def _find_geometry_container_variables(variables):
+    """Finds geometry container variables amongst a set of netCDF variables.
+
+    Note:
+        A netCDF file may have more than one geometry container variable.
+
+    Args:
+        variables (dict(Variable)): The netCDF variables, as in
+            nc_dataset.variables.
+
+    Returns:
+        list(str): Names of geometry container variables.
+
+    """
     container_names = []
     geom_types = ['point', 'line', 'polygon']
     for var in variables:
@@ -26,6 +41,21 @@ def _find_geometry_container_variables(variables):
 
 
 def _get_coord_vals(nc_dataset, candidate_names, coord_type):
+    """Extracts coordinate values for the given coordinate type.
+
+    Given a coordinate type and a list of candidate variable names, identify
+    the variable matching the coordinate type and extract its values.
+
+    Args:
+        nc_dataset (netCDF4.Dataset): The netCDF dataset.
+        candidate_names (list(str)): Names of candidate variables, one of which
+            should match the coordinate type.
+        coord_type (str): The coordinate type, Valid values are X, Y, and Z.
+
+    Returns:
+        array-like: Coordinate values.
+
+    """
     coord_type = coord_type.upper()
     for name in candidate_names:
         var = nc_dataset.variables[name]
@@ -36,6 +66,25 @@ def _get_coord_vals(nc_dataset, candidate_names, coord_type):
 
 
 def _get_geom_aux_variable(aux_attr, geom_var, nc_dataset):
+    """Extracts values for the given variable related to geometry.
+
+    A geometry container variable may have attributes providing names of
+    related variables. Not all geometry types require all possible attributes.
+    For example, only polygon types may require an interior_ring attribute. 
+
+    Args:
+        aux_attr (str): Attribute name to search for on the geometry container.
+            should match the coordinate type.
+        geom_var (Variable): The netCDF Variable object representing the
+            geometry container.
+        nc_dataset (netCDF4.Dataset): The netCDF dataset.
+
+    Returns:
+        If the geometer container includes the provided attribute, an
+        array-like of the related variable's values is returned. Otherwise,
+        None is returned.
+
+    """
     var = None
     if aux_attr in geom_var.ncattrs():
         var_name = getattr(geom_var, aux_attr)
@@ -45,6 +94,17 @@ def _get_geom_aux_variable(aux_attr, geom_var, nc_dataset):
 
 
 def _is_vlen(geom_var, nc_dataset):
+    """Determines if the geometry uses variable length arrays.
+
+    Args:
+        geom_var (Variable): The netCDF Variable object representing the
+            geometry container.
+        nc_dataset (netCDF4.Dataset): The netCDF dataset.
+
+    Returns:
+        bool: True if variable length arrays are used, False otherwise.
+
+    """
     coord_var_name = getattr(geom_var, Attrs.NODE_COORDS).split(' ')[0]
     coord_var = nc_dataset.variables[coord_var_name]
     return isinstance(coord_var[0], np.ndarray)
@@ -52,6 +112,22 @@ def _is_vlen(geom_var, nc_dataset):
 
 def _geoms_from_cra(geom_type, x_vals, y_vals, z_vals, ring_types, node_counts,
                     part_node_counts):
+    """Builds a GeometryContainer from contiguous ragged array netCDF.
+
+    Args:
+        geom_type (str): Geometry type. Must be point, line, or polygon.
+        x_vals (array-like(float)): X node coordinate values.
+        y_vals (array-like(float)): Y node coordinate values.
+        z_vals (array-like(float) or None): Z node coordinate values.
+        ring_types (array-like(int) or None): Polygon ring types.
+        node_counts (array-like(int) or None): Node counts per geometry.
+        part_node_counts (array-like(int) or None): Node counts per geometry
+            part.
+
+    Returns:
+        GeometryContainer: Geometry container with geometries read from netCDF.
+
+    """
     geoms = []
     has_z = z_vals is not None
     is_multipoint = (geom_type == 'point' and node_counts is not None)
@@ -97,6 +173,23 @@ def _geoms_from_cra(geom_type, x_vals, y_vals, z_vals, ring_types, node_counts,
 
 def _geoms_from_vlen(geom_type, x_vals, y_vals, z_vals, ring_types,
                      part_node_counts, is_multipoint):
+    """Builds a GeometryContainer from variable length array netCDF.
+
+    Args:
+        geom_type (str): Geometry type. Must be point, line, or polygon.
+        x_vals (array-like(float)): X node coordinate values.
+        y_vals (array-like(float)): Y node coordinate values.
+        z_vals (array-like(float) or None): Z node coordinate values.
+        ring_types (array-like(int) or None): Polygon ring types.
+        part_node_counts (array-like(int) or None): Node counts per geometry
+            part.
+        is_multipoint (bool): True if multipoint geometries are present, False
+            otherwise.
+
+    Returns:
+        GeometryContainer: Geometry container with geometries read from netCDF.
+
+    """
     geoms = []
     has_z = z_vals is not None
     if part_node_counts is None:
@@ -131,6 +224,31 @@ def _geoms_from_vlen(geom_type, x_vals, y_vals, z_vals, ring_types,
 
 
 def read_netcdf(path_or_object, container_name=None):
+    """Reads a netCDF file into geometry containers.
+
+    Args:
+        path_or_object (str or netCDF4.Dataset): Input netCDF file or object.
+        container_name (str): Name of the geometry container variable to
+            extract from the file.
+
+    Returns:
+        Dictionary with one item for each geometry container found within the
+        file, or a single item if a container_name was provided. The dictionary
+        is keyed by geometry container variable and has this structure::
+
+            {
+                'A_Geometry_Container_Variable_Name': {
+                    'container': GeometryContainer instance},
+                'Another_Geometry_Container_Variable_Name': {
+                    'container': GeometryContainer instance}
+            }
+
+    Raises:
+        ValueError: If geometry container with the provided name was not found.
+
+    Todo:
+        * Return NcNames in the dictionary for each container.
+    """
     should_close = False
     if isinstance(path_or_object, Dataset):
         ds = path_or_object

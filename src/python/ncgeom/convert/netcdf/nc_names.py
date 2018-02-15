@@ -1,5 +1,11 @@
+"""Means of providing names and attribute values to use in a netCDF file."""
+
 class NcNames(object):
+    """Provides names and attribute values to use in a netCDF file."""
+
     def __init__(self):
+        """Inits NcNames with default values."""
+
         self.node_vltype = 'node_VLType'
         self.part_node_vltype = 'part_node_VLType'
         self.instance_dim = 'instance'
@@ -16,6 +22,13 @@ class NcNames(object):
 
 
     def set_prefix(self, prefix):
+        """Prepends text to some names.
+
+        Args:
+            prefix (str): The prefix to append, e.g., mydata_. A resulting
+                variable name might be mydata_x.
+
+        """
         self.node_dim = prefix + self.node_dim
         self.part_dim = prefix + self.part_dim
         self.x_var = prefix + self.x_var

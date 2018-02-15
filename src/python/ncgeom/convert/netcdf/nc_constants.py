@@ -1,4 +1,8 @@
+"""Constants for reading and writing netCDF files."""
+
 class Attrs(object):
+    """NetCDF attribute names and values, taken largely from CF conventions."""
+
     AXIS = 'axis'
     GEOM_TYPE = 'geometry_type'
     NODE_COUNT = 'node_count'
@@ -17,5 +21,7 @@ class Attrs(object):
 
 
 class RingType(object):
+    """Indicates polygon ring type. Inner rings are polygon holes."""
+
     OUTER = 0
     INNER = 1

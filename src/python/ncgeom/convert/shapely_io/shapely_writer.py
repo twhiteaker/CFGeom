@@ -1,3 +1,5 @@
+"""Converts GeometryContainer objects to lists of shapely geometries."""
+
 from shapely.geometry import (
     Point,
     MultiPoint,
@@ -15,9 +17,25 @@ _geom_map = {'Point': Point,
              'MultiLineString': MultiLineString,
              'Polygon': Polygon,
              'MultiPolygon': MultiPolygon}
+"""dict: Maps from WKT geometry types to shapely geometry types."""
 
 
 def _resolve_target_geom_type(geom, shapely_type):
+    """Finds the appropriate shapely geometry type for a Geometry instance.
+
+    Args:
+        geom (Geometry): The Geometry instance.
+        shapely_type (shapely.geometry type or None): If not None,
+            this is the shapely geometry type to attempt to use.
+
+    Returns:
+        The shapely geometry type to use.
+
+    Raises:
+        ValueError: If the provided shapely type is not compatible with the
+        input Geometry instance.
+
+    """
     try:
         if isinstance(shapely_type, BaseGeometry):
             shapely_type = shapely_type.__name__
@@ -36,6 +54,16 @@ def _resolve_target_geom_type(geom, shapely_type):
 
 
 def _extract_geom_part_coordinates(part):
+    """Extracts shapely-compatible coordinates from a geometry Part instance.
+
+    Args:
+        part (Part): The Part instance.
+
+    Returns:
+        list(tuple(float, float, float)): List of geometry coordinates, where
+        each coordinate is a tuple of x, y, and z values (if present).
+
+    """
     coords = []
     x_vals = part.x
     y_vals = part.y
@@ -55,6 +83,17 @@ def _extract_geom_part_coordinates(part):
 
 
 def geom_to_shapely(geom, shapely_geom_type=None):
+    """Creates a shapely geometry from a Geometry instance.
+
+    Args:
+        geom (Geometry): The Geometry instance.
+        shapely_type (shapely.geometry type, optional): The shapely
+            geometry type to attempt to use.
+
+    Returns:
+        shapely.geometry.BaseGeometry: The shapely geometry.
+
+    """
     shapely_type = _resolve_target_geom_type(geom, shapely_geom_type)
     shapely_type_str = shapely_type.__name__
 
