@@ -50,6 +50,15 @@ class TestInit(AbstractNcgeomTest):
         self.assertEqual(geom.has_hole(), False)
 
 
+class TestEq(AbstractNcgeomTest):
+    def test_eq(self):
+        a = Geometry('point', Part(1, 1))
+        b = Geometry('point', Part(1, 1))
+        c = Geometry('point', Part(2, 1))
+        self.assertEqual(a, b)
+        self.assertNotEqual(a, c)
+
+
 class TestHasHole(AbstractNcgeomTest):
     def test_has_hole(self):
         geom = Geometry('polygon', [poly, poly])

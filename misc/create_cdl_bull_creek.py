@@ -13,7 +13,7 @@ from shapely.geometry import shape
 
 sys.path.append(os.path.abspath('../src/python'))
 from ncgeom import read_shapely
-from ncgeom.io.netcdf.nc_names import NcNames
+from ncgeom.convert.netcdf.nc_names import NcNames
 
 CATCHMENTS = '../data/use_cases/Bull_Creek/nhd_catchment.json'
 FLOWLINES = '../data/use_cases/Bull_Creek/nhd_flowline.json'

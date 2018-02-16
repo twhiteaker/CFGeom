@@ -34,6 +34,18 @@ class TestInit(AbstractNcgeomTest):
         self.assertEqual(len(container.geoms), 3)
 
 
+class TestEq(AbstractNcgeomTest):
+    def test_eq(self):
+        a = Geometry('point', Part(1, 1))
+        b = Geometry('point', Part(1, 1))
+        c = Geometry('point', Part(2, 1))
+        ca = GeometryContainer(a)
+        cb = GeometryContainer(b)
+        cc = GeometryContainer(c)
+        self.assertEqual(a, b)
+        self.assertNotEqual(a, c)
+
+
 class TestHasHole(AbstractNcgeomTest):
     def test_has_hole(self):
         container = GeometryContainer([poly, poly])
