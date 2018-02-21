@@ -2,70 +2,38 @@
 
 # netCDF-CF-simple-geometry
 
-**DRAFT** CF Convention for Representing Simple Geometry Types
+A Python Reference Implementation for Representing Geometries in NetCDF Following the CF Conventions
 
-This project describes how points, lines, polygons, and their multipart equivalents could be represented in NetCDF-CF. The project includes a Python reference implementation for writing simple geometries to a netCDF file.
+This project demonstrates how points, lines, polygons, and their multipart equivalents can be represented in NetCDF-CF. The project includes a Python reference implementation for reading and writing geometries in a netCDF file.
+
+To view the geometries specification including examples, see the [Geometries section in Dave Blodgett's fork of the CF Conventions](https://github.com/dblodgett-usgs/cf-conventions/blob/master/ch07.adoc#geometries).
 
 ## Scope
 
-* Extends existing CF capabilities in CF 1.7 to include _geometries_ of types point, line, and polygon.
+* Implemented in CF 1.8 to include _geometries_ of types point, line, and polygon.
 * Limited to linear connections between nodes in the coordinate reference system the nodes are defined in.
 * Allows geometries to be attached to a Discrete Sampling Geometry (DSG) _instance_ variable.
+* Demonstrates use of enhanced netCDF-4 capabilities for inclusion in CF 2.0.
 
 ## Use Cases
 
 * Encode watershed model time series and polygons in a single file to archive model output and geometry.
-* Encode a streamflow value for each river segment in the conterminous U.S. at a given point in time.
+* Encode a streamflow value for each river line in the conterminous U.S. at a given point in time.
 
-## Proposal
+## How To Use This Project
 
-* Support point, line, and polygon geometry, including multilines and multipolygons with holes, in netCDF-3 for potential inclusion in CF 1.8 with a clear path to enhanced netCDF-4 for inclusion in CF 2.0. 
-* Define a standard that the CF timeSeries feature type could use to specify spatial coordinates of a timeSeries variable.
+* To see full examples, view the [use case folders](https://github.com/twhiteaker/netCDF-CF-simple-geometry/tree/master/data/use_cases).  Each folder includes a CDL file to demonstrate how to encode geometries. CDL files are text representations of the content of a netCDF file, and can be viewed with a text editor.
+* For simplified examples demonstrating the various geometry types in CDL and netCDF format, see the [simplified examples folder](https://github.com/twhiteaker/netCDF-CF-simple-geometry/tree/master/data/simplified_examples).  You'll find both CRA (contiguous ragged array for netCDF-3) and VLEN (variable length array for netCDF-4) examples.  Note that these examples are simplified in that they do not include data variables associated with the geometries, so they are not truly CF-compliant.
+* For additional simplified examples in CDL, see [the wiki](https://github.com/twhiteaker/netCDF-CF-simple-geometry/wiki).
+* To read and write geometries using Python, see the [reference implementation](https://github.com/twhiteaker/netCDF-CF-simple-geometry/tree/master/src/python/ncgeom).
 
-## What does the existing specification do that's similar to this proposal? 
-For any coordinate variable, `bounds` can be defined to describe the boundaries of the region (typically in space-time) meant to be represented by the variable. This capability, described in [section 7.1](http://cfconventions.org/cf-conventions/cf-conventions.html#cell-boundaries), supports three types of `bounds`: 1-D bounds such as a time period, 2-D bounds such as the bounding rectangle of a cell in a 2-D grid, and n-d bounds to describe a cell with more than four edges.
-
-For example, consider a 2-D grid of cells that do not lie on an orthogonal grid and consequently have curved cell edges. If these cells are to be represented acurately using lat/lon `bounds` many nodes are required to describe their curvature. In this case, a `lat_bnds` and `lon_bnds` variable will have `p` vertices, where p is the number needed to adequately represent the curvature of the cells.  
-
-Extending Example 7.2 in the NetCDF-CF 1.7 specification, and assuming 10 vertices per edge plus corners are needed, this would look like:
-
-```
-dimensions:
-  imax = 128 ;
-  jmax = 64 ;
-  nv = 44 ;
-variables:
-  float lat(jmax,imax) ;
-    lat:long_name = "latitude" ;
-    lat:units = "degrees_north" ;
-    lat:bounds = "lat_bnds" ;
-  float lon(jmax,imax) ;
-    lon:long_name = "longitude" ;
-    lon:units = "degrees_east" ;
-    lon:bounds = "lon_bnds" ;
-  float lat_bnds(jmax,imax,nv) ;
-  float lon_bnds(jmax,imax,nv) ;
-```
-
-With regards to time series, Discrete Sampling Geometries (DSGs) handle data from one (or a collection of) `timeSeries` (point), `trajectory`, `profile`, `trajectoryProfile` or `timeSeriesProfile` geometries. Measurements are from a **point** (timeSeries and profile) or **points** along a trajectory. 
-
-## What doesn't the existing specification do that we need? 
-From the perspective of time series associated with polygons, DSGs have no system to define a geometry (multipoint, polyline, polygon, etc.) and an association with a time series that applies over that entire geometry.  
-> e.g., The expected rainfall in this watershed polygon for some period of time is 10 mm.  
-
-Current practice has been to assign a nominal point (centroid or some other location) or just use an ID and forgo spatial information within a NetCDF-CF file. In order to satisfy a number of environmental modeling use cases, a way to encode a multipoint, line or polygon geometry that is the static spatial element for which one or more time series can be associated is needed.
-
-The current n-d `bounds` mechanism is limited in that every cell must have the same number of vertices. In order to support geometries more generally a new approach is needed. Typically, these geometries will each have drastically different numbers of nodes and may have multiple parts and/or holes. This requirement is not supported by the existing n-d `bounds` but conceptually, a geometry can be associated with a cell the same as an n-d geometry, albeit with some additional metadata and data.
-
-## How does what we are proposing work with / build on the current specification?
-In this proposal, we intend to provide an encoding to define collections of geometries (point, line, polygon, including their multipart equivalents). Geometries are defined by a `geometry_container` variable within the file.  The scalar `geometry_container` variable has attributes pointing to variables providing the coordinates of each node in the collection of geometries, an attribute indicating the geometry type, and additional attributes to deal with multipart features and polygon holes if needed.  Data variables are associated with geometries by including a `geometry` attribute on the data variable.  
-This will interface cleanly with the information encoded in Discrete Sampling Geometries, enabling DSGs and Geometries to be used in tandem to describe relevant datasets. 
+You may also be interest in the [R reference implementation](https://github.com/dblodgett-usgs/NCDFSG).
 
 ---
 
-### Example: Representation of polygons in a NetCDF-3 timeSeries featureType file.
+## Example: Polygons in a NetCDF-3 timeSeries featureType File
 
-Below is sample CDL demonstrating how multipolygons with holes can be encoded in NetCDF-3 using a contiguous ragged array-like encoding. The example includes two polygons. The first polygon is a multipart feature with two triangles, with a triangular hole in the first part.  The second polygon is a single triangle.
+Below is sample CDL demonstrating how multipolygons with holes can be encoded in CF-compliant NetCDF-3 using a contiguous ragged array-like encoding. The example includes two polygons. The first polygon is a multipart feature with two triangles, with a triangular hole in the first part.  The second polygon is a single triangle.
 
 ```
 netcdf multipolygon_example {
