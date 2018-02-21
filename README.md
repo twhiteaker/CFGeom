@@ -27,7 +27,7 @@ To view the geometries specification including examples, see the [Geometries sec
 * For additional simplified examples in CDL, see [the wiki](https://github.com/twhiteaker/netCDF-CF-simple-geometry/wiki).
 * To read and write geometries using Python, see the [reference implementation](https://github.com/twhiteaker/netCDF-CF-simple-geometry/tree/master/src/python/ncgeom).
 
-You may also be interest in the [R reference implementation](https://github.com/dblodgett-usgs/NCDFSG).
+You may also be interested in the [R reference implementation](https://github.com/dblodgett-usgs/NCDFSG).
 
 ---
 
