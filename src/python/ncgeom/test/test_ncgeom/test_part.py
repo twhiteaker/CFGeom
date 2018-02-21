@@ -39,6 +39,47 @@ class TestInit(AbstractNcgeomTest):
         self.assertEqual(part.y, [y])
         
 
+class TestEq(AbstractNcgeomTest):
+    def test_eq_arrays(self):
+        a = np.array([1.0, 2.0])
+        b = np.array([1, 2])
+        c = [1,2]
+        d = [1.0, 2.0]
+        y = [1, 1]
+        pa = Part(a, y)
+        pb = Part(b, y)
+        pc = Part(c, y)
+        pd = Part(d, y)
+        self.assertEqual(pa, pb)
+        self.assertEqual(pa, pc)
+        self.assertEqual(pc, pb)
+        self.assertEqual(pc, pd)
+
+
+    def test_eq_arrays(self):
+        a = np.array([1.0, 2.0])
+        b = np.array([3, 2])
+        c = [2, 2]
+        d = [2, 2, 2]
+        y = [1, 1]
+        pa = Part(a, y)
+        pb = Part(b, y)
+        pc = Part(c, y)
+        pd = Part(d, [1, 1, 1])
+        self.assertNotEqual(pa, pb)
+        self.assertNotEqual(pa, pc)
+        self.assertNotEqual(pc, pb)
+        self.assertNotEqual(pc, pd)
+
+
+    def test_eq_hole(self):
+        a = Part(1, 2, True)
+        b = Part(1, 2, True)
+        c = Part(1, 2, False)
+        self.assertEqual(a, b)
+        self.assertNotEqual(a, c)
+
+
 class TestArea(AbstractNcgeomTest):
     def test_area_clockwise_convex(self):
         x = [0, 5, 10]

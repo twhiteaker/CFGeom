@@ -3,6 +3,12 @@
 from decimal import Decimal
 import numbers
 
+try:
+    import numpy as np
+    _has_numpy = True
+except:
+    _has_numpy = False
+
 from . util import is_iterable
 
 
@@ -156,6 +162,23 @@ class Part(object):
         self.z = z
         self.is_hole = is_hole
         self._is_clockwise = None
+
+
+    def __eq__(self, other):
+        if type(other) is type(self):
+            try:
+                attributes_to_check = [k for k in self.__dict__ if k[0] != '_']
+                for k in attributes_to_check:
+                    if self.__dict__[k] != other.__dict__[k]:
+                        return False
+                return True
+            except:
+                return False
+        return False        
+
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
 
 
     def is_clockwise(self):

@@ -48,6 +48,23 @@ class GeometryContainer(object):
         self._wkt_type = None
 
 
+    def __eq__(self, other):
+        if type(other) is type(self):
+            try:
+                attributes_to_check = [k for k in self.__dict__ if k[0] != '_']
+                for k in attributes_to_check:
+                    if self.__dict__[k] != other.__dict__[k]:
+                        return False
+                return True
+            except:
+                return False
+        return False        
+
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+
     def has_hole(self):
         """Determines if any geometries in the container have polygon holes.
 
