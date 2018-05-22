@@ -107,7 +107,7 @@ def _is_vlen(geom_var, nc_dataset):
     """
     coord_var_name = getattr(geom_var, Attrs.NODE_COORDS).split(' ')[0]
     coord_var = nc_dataset.variables[coord_var_name]
-    return isinstance(coord_var[0], np.ndarray)
+    return isinstance(coord_var[:][0], np.ndarray)
 
 
 def _geoms_from_cra(geom_type, x_vals, y_vals, z_vals, ring_types, node_counts,
