@@ -11,13 +11,13 @@ variables:
 		lat:missing_value = -999. ;
 		lat:long_name = "latitude of the observation" ;
 		lat:standard_name = "latitude" ;
-    lat:axis = "Y" ;
+    lat:nodes = "Y" ;
 	double lon(station) ;
 		lon:units = "degrees_east" ;
 		lon:missing_value = -999. ;
 		lon:long_name = "longitude of the observation" ;
 		lon:standard_name = "longitude" ;
-    lon:axis = "X" ;
+    lon:nodes = "X" ;
 	double time(time) ;
 		time:units = "days since 1970-01-01 00:00:00" ;
 		time:missing_value = -999. ;

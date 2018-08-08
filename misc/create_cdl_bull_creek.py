@@ -147,6 +147,8 @@ def main():
             geom_var_name = line_names.container_var
             write_collection(cf_lines, line_names, line_props, is_cra, nc)
             nc.variables['streamflow'].geometry = geom_var_name
+            nc.variables['lat'].nodes = line_names.y_var
+            nc.variables['lon'].nodes = line_names.x_var
             write_collection(cf_polys, poly_names, poly_props, is_cra, nc)
         ncdump(out_path)
 

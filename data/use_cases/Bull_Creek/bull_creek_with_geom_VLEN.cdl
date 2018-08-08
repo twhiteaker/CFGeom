@@ -17,10 +17,12 @@ variables:
 		lat:units = "degrees_north" ;
 		lat:long_name = "Latitude of upstream end of river segment" ;
 		lat:standard_name = "latitude" ;
+		lat:nodes = "flowlines_y" ;
 	double lon(comid) ;
 		lon:units = "degrees_east" ;
 		lon:long_name = "Longitude of upstream end of river segment" ;
 		lon:standard_name = "longitude" ;
+		lon:nodes = "flowlines_x" ;
 	float streamflow(time, comid) ;
 		streamflow:units = "meter^3 / sec" ;
 		streamflow:long_name = "River Flow" ;

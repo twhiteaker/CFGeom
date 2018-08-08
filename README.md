@@ -48,11 +48,11 @@ variables:
   double x(node) ;
     x:units = "degrees_east" ;
     x:standard_name = "longitude" ;
-    x:axis = "X" ;
+    x:nodes = "X" ;
   double y(node) ;
     y:units = "degrees_north" ;
     y:standard_name = "latitude" ;
-    y:axis = "Y" ;
+    y:nodes = "Y" ;
   double lat(instance) ;
     lat:units = "degrees_north" ;
     lat:standard_name = "latitude" ;
