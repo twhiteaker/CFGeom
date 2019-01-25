@@ -171,7 +171,7 @@ class GeometryContainer(object):
             netcdf_path_or_object (str or netCDF4.Dataset): Target netCDF file
                 or object.  If the file exists, it is overwritten. Pass a
                 netCDF4.Dataset object to append to an existing file.
-            nc_names (ncgeom.convert.netcdf.nc_names.NcNames, optional): Object
+            nc_names (cfgeom.convert.netcdf.nc_names.NcNames, optional): Object
                 specifying names for types, dimensions, and variables to use in
                 the netCDF file.
             use_vlen (bool, optional): True if variable length (VLEN) arrays

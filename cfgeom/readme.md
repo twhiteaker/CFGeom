@@ -1,7 +1,7 @@
 ## Create a geometry container with line geometries
 
 ```python
-from ncgeom import Part, Geometry, GeometryContainer
+from cfgeom import Part, Geometry, GeometryContainer
 
 # Geometries are comprised of one or more parts
 # The part holds the node coordinates
@@ -38,7 +38,7 @@ print(part.x)  # [9, 5, 1]
 ## Write and read netCDF
 
 ```python
-from ncgeom import read_netcdf
+from cfgeom import read_netcdf
 path_to_netcdf_file = 'test_file.nc'
 polygon_container.to_netcdf(path_to_netcdf_file, use_vlen=False)
 # There could be several geometry containers in a file
@@ -52,7 +52,7 @@ print(container_from_nc.geoms[0].parts[1].x)  # [1.0, 5.0, 9.0]
 ## Write and read shapely
 
 ```python
-from ncgeom import read_shapely
+from cfgeom import read_shapely
 shapely_lines = line_container.to_shapely()
 print(len(shapely_lines))  # 2
 print(shapely_lines[0])  # LINESTRING (10 0, 5 5, 0 0)

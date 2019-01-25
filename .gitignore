@@ -40,6 +40,7 @@ htmlcov/
 .coverage
 .coverage.*
 .cache
+.pytest_cache
 nosetests.xml
 coverage.xml
 *,cover
@@ -90,6 +91,3 @@ ENV/
 
 # Mac OS
 .DS_Store
-src/python/ncsg/.pytest_cache/v/cache/lastfailed
-src/python/.pytest_cache/
-src/python/ncgeom/.pytest_cache/v/cache/lastfailed

@@ -9,7 +9,7 @@ from unittest.case import TestCase
 
 class AbstractNcgeomTest(TestCase):
     __metaclass__ = ABCMeta
-    _prefix_path_test = 'ncgeom_test_'
+    _prefix_path_test = 'cfgeom_test_'
 
     def setUp(self):
         self.test_temp_dir = self.get_temporary_output_directory()
@@ -28,7 +28,7 @@ class AbstractNcgeomTest(TestCase):
         # Change working directories to help test runners like py.test.
         cwd = os.getcwd()
         os.chdir(os.path.split(__file__)[0])
-        ret = os.path.join(os.path.realpath('../../../..'), 'data')
+        ret = os.path.join(os.path.realpath('../..'), 'data')
         os.chdir(cwd)
         return ret
 

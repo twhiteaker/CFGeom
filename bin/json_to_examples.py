@@ -6,7 +6,7 @@ import sys
 
 
 sys.path.append(os.path.abspath('../src/python'))
-from ncgeom import read_json
+from cfgeom import read_json
 
 FOLDER = '../data/simplified_examples'
 

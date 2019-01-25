@@ -1,0 +1,2 @@
+include *.txt *.md LICENSE
+recursive-include docs *.md

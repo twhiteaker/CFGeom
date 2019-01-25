@@ -1,6 +1,6 @@
-[![Build Status](https://travis-ci.org/twhiteaker/netCDF-CF-simple-geometry.svg?branch=master)](https://travis-ci.org/twhiteaker/netCDF-CF-simple-geometry)
+# CFGeom
 
-# netCDF-CF-simple-geometry
+[![Build Status](https://travis-ci.org/twhiteaker/netCDF-CF-simple-geometry.svg?branch=master)](https://travis-ci.org/twhiteaker/netCDF-CF-simple-geometry)
 
 A Python Reference Implementation for Representing Geometries in NetCDF Following the CF Conventions
 
@@ -25,7 +25,7 @@ To view the geometries specification including examples, see the [Geometries sec
 * To see full examples, view the [use case folders](https://github.com/twhiteaker/netCDF-CF-simple-geometry/tree/master/data/use_cases).  Each folder includes a CDL file to demonstrate how to encode geometries. CDL files are text representations of the content of a netCDF file, and can be viewed with a text editor.
 * For simplified examples demonstrating the various geometry types in CDL and netCDF format, see the [simplified examples folder](https://github.com/twhiteaker/netCDF-CF-simple-geometry/tree/master/data/simplified_examples).  You'll find both CRA (contiguous ragged array for netCDF-3) and VLEN (variable length array for netCDF-4) examples.  Note that these examples are simplified in that they do not include data variables associated with the geometries, so they are not truly CF-compliant.
 * For additional simplified examples in CDL, see [the wiki](https://github.com/twhiteaker/netCDF-CF-simple-geometry/wiki).
-* To read and write geometries using Python, see the [reference implementation](https://github.com/twhiteaker/netCDF-CF-simple-geometry/tree/master/src/python/ncgeom).
+* To read and write geometries using Python, see the [reference implementation](https://github.com/twhiteaker/netCDF-CF-simple-geometry/tree/master/cfgeom).
 
 You may also be interested in the [R reference implementation](https://github.com/dblodgett-usgs/NCDFSG).
 
@@ -95,10 +95,16 @@ data:
 }
 ```
 
-### How to interpret:
- 
+### How to interpret
+
 1) See CF-1.8 conventions.  
 2) See the `timeSeries` featureType.  
 3) See the `geometry` attribute on the data variable.
 4) See the `geometry_type` in the variable referenced by the `geometry` attribute.  
 5) Iterate over geometries found in the `node_coordinates` variable. Geometries are found using the `node_count` variable. Geometry parts are found using the `part_node_count` and `interior_ring` variables.
+
+## Contributors
+
+* Tim Whiteaker
+* Ben Koziol
+* David Blodgett

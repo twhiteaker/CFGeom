@@ -11,7 +11,7 @@ import tempfile
 from shapely import wkt
 
 sys.path.append(os.path.abspath('../src/python'))
-from ncgeom import read_shapely
+from cfgeom import read_shapely
 
 fixture_wkt = '../data/fixture_wkt.json'
 out_file = 'tmp/create_cdl_examples.md'

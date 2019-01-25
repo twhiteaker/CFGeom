@@ -1,0 +1,25 @@
+Release Summary:
+
+v0.2.0-alpha, 2018-02-14 -- Draft with CFGeometryCollection and CF compliance
+
+v0.1.0-ALPHA, 2017-03-15 -- Initial release, prototype with coordinate indirection
+     
+Details of each release follow, from most recent to oldest.
+
+-------------------------------------------------------------------------------------
+
+v0.2.0-alpha, 2018-02-14 -- Draft with CFGeometryCollection and CF compliance
+
+Compliant with draft CF geometry proposal (see pull request 115 under the 
+cf-conventions). Code was made compliant by migrating from coordinate indirection 
+versions of code (v0.1.0).
+
+-------------------------------------------------------------------------------------
+
+v0.1.0-ALPHA, 2017-03-15 -- Initial release, prototype with coordinate indirection
+
+The prototype Python code in this version uses coordinate indirection via a
+coordinate index variable. Break values are inserted into the index to represent
+polygon holes or parts in multipart geometries. The code was authored by @bekozi.
+With the project moving away from this kind of coordinate indexing, this release
+serves to preserve that code.

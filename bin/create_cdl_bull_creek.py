@@ -12,8 +12,8 @@ import numpy as np
 from shapely.geometry import shape
 
 sys.path.append(os.path.abspath('../src/python'))
-from ncgeom import read_shapely
-from ncgeom.convert.netcdf.nc_names import NcNames
+from cfgeom import read_shapely
+from cfgeom.convert.netcdf.nc_names import NcNames
 
 CATCHMENTS = '../data/use_cases/Bull_Creek/nhd_catchment.json'
 FLOWLINES = '../data/use_cases/Bull_Creek/nhd_flowline.json'
