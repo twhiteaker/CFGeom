@@ -7,11 +7,6 @@ This project demonstrates how points, lines, polygons, and their multipart
 equivalents can be represented in NetCDF-CF. The project includes a Python
 reference implementation for reading and writing geometries in a netCDF file.
 
-* To see full examples, view the [use case
-  folders](https://github.com/twhiteaker/netCDF-CF-simple-geometry/tree/master/data/use_cases).
-  Each folder includes a CDL file to demonstrate how to encode geometries. CDL
-  files are text representations of the content of a netCDF file, and can be
-  viewed with a text editor.
 * For simplified examples demonstrating the various geometry types in CDL and
   netCDF format, see the [simplified examples
   folder](https://github.com/twhiteaker/netCDF-CF-simple-geometry/tree/master/data/simplified_examples).
@@ -19,6 +14,11 @@ reference implementation for reading and writing geometries in a netCDF file.
   length array for netCDF-4) examples.  Note that these examples are simplified
   in that they do not include data variables associated with the geometries, so
   they are not truly CF-compliant.
+* For full examples, see the [use case
+  folders](https://github.com/twhiteaker/netCDF-CF-simple-geometry/tree/master/data/use_cases).
+  Each folder includes a CDL file to demonstrate how to encode geometries. CDL
+  files are text representations of the content of a netCDF file, and can be
+  viewed with a text editor.
 * To read and write geometries using Python, see the [reference
   implementation](https://github.com/twhiteaker/netCDF-CF-simple-geometry/tree/master/cfgeom).
 * For more about CF geometries and the scope of this project, see the remainder
@@ -91,7 +91,7 @@ is a hole if holes are present.  For more information including examples, see
 [Chapter 7 of the CF
 Conventions](https://github.com/cf-convention/cf-conventions/blob/master/ch07.adoc#geometries).
 
-## Example: Polygons in a NetCDF-3 timeSeries featureType File
+### Example: Polygons in a NetCDF-3 timeSeries featureType File
 
 Below is sample CDL demonstrating how multipolygons with holes can be encoded in CF-compliant NetCDF-3 using a contiguous ragged array-like encoding. The example includes two polygons. The first polygon is a multipart feature with two triangles, with a triangular hole in the first part.  The second polygon is a single triangle.
 
@@ -155,7 +155,7 @@ data:
 }
 ```
 
-### How to interpret
+#### How to interpret
 
 1) See CF-1.8 conventions.  
 2) See the `timeSeries` featureType.  
