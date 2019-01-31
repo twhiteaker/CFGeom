@@ -7,13 +7,13 @@ On Windows:
 1. Download the Shapely wheel for your version of Python from [Christoph
    Gohlke's Unofficial Windows
    Binaries](https://www.lfd.uci.edu/~gohlke/pythonlibs/#shapely).
-2. Install Shapely using pip, e.g., `pip install
-   Shapely‑1.6.4.post1‑cp27‑cp27m‑win32.whl`
-3. Install CFGeom with `pip install CFGeom`
+2. In a command window, browse to your downloads folder and install Shapely
+   using pip, e.g., `pip install Shapely‑1.6.4.post1‑cp27‑cp27m‑win32.whl`
+3. Install CFGeom with `pip install cfgeom`
 
 On other operating systems:
 
-1. `pip install CFGeom`
+1. `pip install cfgeom`
 
 ## Create a geometry container with line geometries
 
@@ -34,14 +34,17 @@ y1 = [0, 5, 0]
 part1 = Part(x1, y1)
 # Set the geometry type when you create the geometry
 line1 = Geometry('line', part1)  # or 'point' or 'polygon'
+
 # Make another line, this time with z values
 x2 = [9, 5, 1]
 y2 = [1, 4, 1]
 z2 = [1, 1, 1]
 line2 = Geometry('line', Part(x2, y2, z2))
+
 # In NetCDF-CF, geometries belong to a geometry container
 geometries = [line1, line2]
 line_container = GeometryContainer(geometries)
+
 print(len(line_container.geoms))  # 2
 ```
 
@@ -61,6 +64,7 @@ hole = Part(x2, y2, is_hole=True)
 parts = [exterior, hole]  # The hole comes second
 polygon = Geometry('polygon', parts)
 polygon_container = GeometryContainer(polygon)
+
 part = polygon_container.geoms[0].parts[1]
 print(part.is_hole)  # True
 print(part.x)  # [9, 5, 1]
@@ -91,6 +95,7 @@ polygon_container.to_netcdf(path_to_netcdf_file, use_vlen=False)
 containers = read_netcdf(path_to_netcdf_file)
 # Get the container named 'geometry_container'
 container_from_nc = containers['geometry_container']['container']
+
 # Nodes for polygon holes are oriented clockwise when writing to netCDF
 print(container_from_nc.geoms[0].parts[1].x)  # [1.0, 5.0, 9.0]
 ```
@@ -100,31 +105,36 @@ requires a data variable to be in the file if you have geometries, and you can
 add a data variable or read an existing data variable using the
 [netCDF4](http://unidata.github.io/netcdf4-python/) package, which is outside
 the scope of this tutorial. If you already had a data variable in the file, then
-to be CF compliant you would just need something like this:
+to be CF compliant you would just need something like the following code. NOTE:
+this code is just example code. It will not work unless you have an existing
+'test_file.nc' that already has a streamflow variable in it.
 
 ```python
 from netCDF4 import Dataset
 
-with Dataset(test_file.nc, 'a') as nc:
+with Dataset('test_file.nc', 'a') as nc:
    # The data variable is named 'streamflow'
    nc.variables['streamflow'].geometry = 'geometry_container'
 ```
 
 Want to inspect test_file.nc outside of Python?  You could try [Panoply](https://www.giss.nasa.gov/tools/panoply/download/).
 
-## Write and read shapely
+## Write and read Shapely
 
 Shapely is one other most commonly used packages for working with geometries in
 Python. CFGeom includes utiilties to convert between CF geometries and Shapely
-geometries. Below we continue with the lines from the previous example.
+geometries. Below we continue with the lines from prior examples.
 
 ```python
 from cfgeom import read_shapely
 
 shapely_lines = line_container.to_shapely()
+
 print(len(shapely_lines))  # 2
 print(shapely_lines[0])  # LINESTRING (10 0, 5 5, 0 0)
+
 container_from_shapely = read_shapely(shapely_lines)
+
 print(container_from_shapely.geom_type)  # line
 print(container_from_shapely.geoms[0].parts[0].x)  # [10.0, 5.0, 0.0]
 ```
