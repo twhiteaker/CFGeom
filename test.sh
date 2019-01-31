@@ -1,3 +1,3 @@
 #!/usr/bin/env bash
 
-py.test cfgeom
+py.test cfgeom --cov cfgeom
