@@ -11,7 +11,7 @@ class GeometryContainer(object):
     """Contains a set of geometries of the same type.
 
     Attributes:
-        geom_type (str): Geometry type, eithier point, line, or polygon.
+        geom_type (str): Geometry type, either point, line, or polygon.
         geoms (array-like(Geometry)): List of geometry objects.
 
     """

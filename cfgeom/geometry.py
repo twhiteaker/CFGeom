@@ -13,7 +13,7 @@ class Geometry(object):
     """Contains vertices for a single geometry part.
 
     Attributes:
-        geom_type (str): Geometry type, eithier point, line, or polygon.
+        geom_type (str): Geometry type, either point, line, or polygon.
         parts (array-like(Part)): List of geometry parts.
 
     """
@@ -22,7 +22,7 @@ class Geometry(object):
         """Inits Geometry with a geometry type and geometry parts.
 
         Args:
-            geom_type (str): Geometry type, eithier point, line, or polygon.
+            geom_type (str): Geometry type, either point, line, or polygon.
             parts (array-like(Part)): List of geometry parts.
 
         Raises:
