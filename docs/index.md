@@ -7,6 +7,10 @@ This project demonstrates how points, lines, polygons, and their multipart
 equivalents can be represented in NetCDF-CF. The project includes a Python
 reference implementation for reading and writing geometries in a netCDF file.
 
+You may also be interested in the [R reference implementation](https://github.com/dblodgett-usgs/NCDFSG).
+
+## Getting Started
+
 * Install this package and start coding with the [tutorial](tutorial.html).
 * For simplified examples demonstrating the various geometry types in CDL and
   netCDF format, see the [simplified examples
@@ -24,8 +28,6 @@ reference implementation for reading and writing geometries in a netCDF file.
   implementation](https://github.com/twhiteaker/netCDF-CF-simple-geometry/tree/master/cfgeom).
 * For more about CF geometries and the scope of this project, see the remainder
   of this document.
-
-You may also be interested in the [R reference implementation](https://github.com/dblodgett-usgs/NCDFSG).
 
 ## Dependencies
 
