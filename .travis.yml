@@ -16,7 +16,11 @@ before_install:
 
 install:
   - travis_retry conda create -n test-full $CONDA_PYTHON shapely pytest numpy netCDF4
+  - conda install -c conda-forge codecov
   - source activate test-full
 
 script:
   - bash test.sh
+
+after_success:
+  - codecov
