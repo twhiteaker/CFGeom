@@ -1,6 +1,8 @@
 # CFGeom
 
-[![Build Status](https://travis-ci.org/twhiteaker/CFGeom.svg?branch=master)](https://travis-ci.org/twhiteaker/netCDF-CF-simple-geometry)
+[![Build
+Status](https://travis-ci.org/twhiteaker/CFGeom.svg?branch=master)](https://travis-ci.org/twhiteaker/CFGeom)
+[![Coverage Status](https://codecov.io/gh/twhiteaker/CFGeom/branch/master/graph/badge.svg)](https://codecov.io/gh/twhiteaker/CFGeom)
 
 A Python Reference Implementation for Representing Geometries in NetCDF Following the CF Conventions
 
