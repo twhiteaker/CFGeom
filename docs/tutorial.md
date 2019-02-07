@@ -9,7 +9,10 @@ On Windows:
    Binaries](https://www.lfd.uci.edu/~gohlke/pythonlibs/#shapely).
 2. In a command window, browse to your downloads folder and install Shapely
    using pip, e.g., `pip install Shapely‑1.6.4.post1‑cp27‑cp27m‑win32.whl`
-3. Install CFGeom with `pip install cfgeom`
+3. Open a Python prompt and verify that `import shapely.geometry` executes
+   without errors.  The author has trouble getting this working on Python 3.
+   Help wanted!
+4. Install CFGeom with `pip install cfgeom`
 
 On other operating systems:
 
