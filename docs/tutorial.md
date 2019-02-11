@@ -2,7 +2,10 @@
 
 ## Installation
 
-On Windows:
+### Installation on Windows
+
+CFGeom relies on Shapely, and the author has had trouble installing Shapely for
+Python 3. You could try this to install Shapely:
 
 1. Download the Shapely wheel for your version of Python from [Christoph
    Gohlke's Unofficial Windows
@@ -10,11 +13,16 @@ On Windows:
 2. In a command window, browse to your downloads folder and install Shapely
    using pip, e.g., `pip install Shapely‑1.6.4.post1‑cp27‑cp27m‑win32.whl`
 3. Open a Python prompt and verify that `import shapely.geometry` executes
-   without errors.  The author has trouble getting this working on Python 3.
-   Help wanted!
-4. Install CFGeom with `pip install cfgeom`
+   without errors.
 
-On other operating systems:
+For the author, this works for Python 2 but not Python 3. Using Anaconda for
+Python 3 and then `conda install shapely` did work for the author.
+
+Once Shapely is installed, install CFGeom with:
+
+1. `pip install cfgeom`
+
+### Installation on other operating systems
 
 1. `pip install cfgeom`
 
