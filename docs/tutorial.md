@@ -151,3 +151,74 @@ print(container_from_shapely.geoms[0].parts[0].x)  # [10.0, 5.0, 0.0]
 ```
 
 Want to write your own converter?  Pull requests are welcome!
+
+## What about shapefiles
+
+Dealing with shapefile attributes and coordinate systems is currently beyond our
+scope, although it would be really cool if a shapefile to netCDF-CF converter
+was implemented!  Still, using [fiona](https://github.com/Toblerity/Fiona), one
+could at least read and write the shapes from a shapefile.
+
+See the [fiona
+docs](https://fiona.readthedocs.io/en/stable/README.html#installation) for
+installation instructions. Once you've got fiona installed, you could use code
+like this to read and write shapes in shapefiles.
+
+```python
+import os
+from shutil import copyfile
+
+import fiona
+from shapely.geometry import mapping, shape
+from netCDF4 import Dataset
+
+from cfgeom import read_shapely, read_netcdf
+
+# Assume this is a line shapefile with COMID and GNIS_NAME attributes
+ORIGINAL_SHAPEFILE = 'some/path/input_geometry/flowlines.shp'
+# Assume this netCDF file has a streamflow variable and no geometries (yet)
+ORIGINAL_NETCDF_FILE = 'some/path/streamflow.nc'
+# The output files this script will create
+OUT_NETCDF_FILE = 'some/path/streamflow_with_geometry.nc'
+OUT_SHAPEFILE = 'some/path/output_geometry/result.shp'
+
+# Read geometries from shapefile
+with fiona.open(ORIGINAL_SHAPEFILE, 'r') as source:
+    schema = source.schema
+    in_shapes = [shape(f['geometry']) for f in source]
+
+    # We'll cheat by caching some attributes and the coordinate system
+    comids = [f['properties']['COMID'] for f in source]
+    names = [f['properties']['GNIS_NAME'] for f in source]
+    crs = source.crs
+
+container_from_shapely = read_shapely(in_shapes)
+
+geom_type = container_from_shapely.geom_type
+count = str(len(container_from_shapely.geoms))
+print('Found ' + count + ' ' + geom_type + ' geometries in shapefile')
+
+# Append geometries to netCDF. Make a copy so we don't mess up the original.
+copyfile(ORIGINAL_NETCDF_FILE, OUT_NETCDF_FILE)
+with Dataset(OUT_NETCDF_FILE, 'a') as nc:
+    container_from_shapely.to_netcdf(nc)
+    nc.variables['streamflow'].geometry = 'geometry_container'
+
+# Read geometries from netCDF
+container_from_nc = read_netcdf(OUT_NETCDF_FILE)['geometry_container']['container']
+shapely_lines = container_from_nc.to_shapely()
+
+count = str(len(shapely_lines))
+print('Created ' + count + ' shapely lines from netCDF')
+
+# Write geometries to shapefile
+directory = os.path.dirname(OUT_SHAPEFILE)
+if not os.path.exists(directory):
+    os.makedirs(directory)
+with fiona.open(OUT_SHAPEFILE, 'w', 'ESRI Shapefile', schema, crs=crs) as shp:
+    for i, line in enumerate(shapely_lines):
+        shp.write({
+            'geometry': mapping(line),
+            'properties': {'COMID': comids[i], 'GNIS_NAME': names[i]},
+        })
+```
